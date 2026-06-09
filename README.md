@@ -16,11 +16,30 @@ L'application sert à configurer des expériences, lancer des parties entre diff
 
 ```text
 .
+├── .env.example
 ├── backend/
 ├── frontend/
 ├── docker-compose.yml
 └── README.md
 ```
+
+## Configuration
+
+La configuration du projet est centralisée dans un fichier `.env`.
+
+Pour créer le fichier local à partir de l'exemple :
+
+```bash
+cp .env.example .env
+```
+
+Variables disponibles :
+
+- `BACKEND_HOST` : adresse d'écoute du backend FastAPI.
+- `BACKEND_PORT` : port exposé pour accéder au backend.
+- `FRONTEND_PORT` : port exposé pour accéder au frontend.
+- `VITE_API_URL` : URL de l'API utilisée par le frontend.
+- `COMPOSE_PROJECT_NAME` : nom du projet Docker Compose.
 
 ## Lancement avec Docker Compose
 
@@ -40,6 +59,12 @@ L'API backend est disponible sur :
 
 ```text
 http://localhost:8000
+```
+
+Le frontend React est disponible sur :
+
+```text
+http://localhost:5173
 ```
 
 La route de santé permet de vérifier que l'API fonctionne :
