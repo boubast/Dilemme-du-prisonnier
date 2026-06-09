@@ -1,11 +1,16 @@
 services:
   backend:
     build: ./backend
+    env_file:
+      - .env
+    command: fastapi run app/main.py --host ${BACKEND_HOST} --port 8000
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT}:8000"
 
   frontend:
     build: ./frontend
+    env_file:
+      - .env
     ports:
-      - "5173:80"
+      - "${FRONTEND_PORT}:80"
 
