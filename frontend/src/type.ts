@@ -44,3 +44,9 @@ export type TournamentConfig = {
   nb_iterations: number
   payoffs: Couts
 }
+
+export interface HelpBlock {
+  title: string
+  description: string
+  snippet: string
+}
