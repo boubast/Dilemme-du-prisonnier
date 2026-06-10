@@ -1,0 +1,14 @@
+[package]
+name = "rhai_runner"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+rhai = "*"
+getrandom = { version = "0.3", features = ["wasm_js"] }
+
+[target.wasm32-unknown-unknown]
+rustflags = ["--cfg", "getrandom_backend=\"wasm_js\""]
