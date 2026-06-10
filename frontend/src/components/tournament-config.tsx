@@ -11,15 +11,8 @@ import { SelectedTag } from "./selected-tag"
 import { StrategyCard } from "./strategy-card"
 import { PayoffInput } from "./payoff-input"
 import { AddStrategyButton } from "./add-strategy-button"
-
-// Vérifie que les coûts respectent T > R > P > S pour un dilemme du prisonnier classique
-function isValidPayoffs(p: Couts): boolean {
-  return (
-    p.tentation > p.recompense &&
-    p.recompense > p.punition &&
-    p.punition > p.dupe
-  )
-}
+import { PayoffMatrix } from "./payoff-matrix"
+import { Separator } from "./ui/separator"
 
 export default function TournamentConfig() {
   const [allStrategies, setAllStrategies] = useState<Strategie[]>([])
@@ -81,8 +74,6 @@ export default function TournamentConfig() {
     }
   }
 
-  const payoffsValid = isValidPayoffs(payoffs)
-
   return (
     <div className="flex gap-5">
       {/* ── Sélection des stratégies ── */}
@@ -103,8 +94,19 @@ export default function TournamentConfig() {
           </span>
         </div>
 
+        {/* Tags des stratégies sélectionnées */}
+        {selectedStrategies.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {selectedStrategies.map((s) => (
+              <SelectedTag key={s.id} strategie={s} onRemove={handleRemove} />
+            ))}
+          </div>
+        )}
+
+        <Separator />
+
         {/* Barre de recherche */}
-        <div className="relative">
+        <div className="relative mt-2">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <input
             ref={searchRef}
@@ -129,15 +131,6 @@ export default function TournamentConfig() {
             </button>
           )}
         </div>
-
-        {/* Tags des stratégies sélectionnées */}
-        {selectedStrategies.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {selectedStrategies.map((s) => (
-              <SelectedTag key={s.id} strategie={s} onRemove={handleRemove} />
-            ))}
-          </div>
-        )}
 
         {/* Liste des stratégies disponibles */}
         {availableStrategies.length > 0 ? (
@@ -209,7 +202,7 @@ export default function TournamentConfig() {
             <div className="flex items-center justify-between">
               <label
                 htmlFor="nb-iterations"
-                className="text-xs font-medium font-semibold text-foreground"
+                className="text-xs font-medium text-foreground"
               >
                 Nombre d'itérations
               </label>
@@ -248,46 +241,32 @@ export default function TournamentConfig() {
 
           <div className="grid grid-cols-2 gap-x-4 gap-y-3">
             <PayoffInput
-              label="Tentation (T)"
+              label="Tentation"
               sublabel="Je trahis, il coopère"
               value={payoffs.tentation}
               onChange={(v) => updatePayoff("tentation", v)}
             />
             <PayoffInput
-              label="Récompense (R)"
+              label="Récompense"
               sublabel="Coopération mutuelle"
               value={payoffs.recompense}
               onChange={(v) => updatePayoff("recompense", v)}
             />
             <PayoffInput
-              label="Punition (P)"
+              label="Punition"
               sublabel="Trahison mutuelle"
               value={payoffs.punition}
               onChange={(v) => updatePayoff("punition", v)}
             />
             <PayoffInput
-              label="Dupe (S)"
+              label="Dupe"
               sublabel="Je coopère, il trahit"
               value={payoffs.dupe}
               onChange={(v) => updatePayoff("dupe", v)}
             />
           </div>
 
-          {/* Indicateur de validité T > R > P > S */}
-          <div
-            className={cn(
-              "rounded-md px-3 py-2 text-center font-mono text-xs transition-colors",
-              payoffsValid
-                ? "bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/20 dark:text-emerald-400"
-                : "bg-destructive/10 text-destructive ring-1 ring-destructive/20"
-            )}
-          >
-            {payoffsValid ? (
-              <>Recommandé&nbsp;: T &gt; R &gt; P &gt; S ✓</>
-            ) : (
-              <>Attention&nbsp;: T &gt; R &gt; P &gt; S non respecté</>
-            )}
-          </div>
+          <PayoffMatrix payoffs={payoffs} />
         </section>
 
         {/* ── Lancer le tournoi ── */}
