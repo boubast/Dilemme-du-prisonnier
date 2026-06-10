@@ -49,3 +49,14 @@ CREATE TABLE participation (
     CONSTRAINT fk_id_tournoi FOREIGN KEY (id_tournoi) REFERENCES tournoi(id_tournoi) ON DELETE CASCADE,
     CONSTRAINT fk_id_strategie FOREIGN KEY (id_strategie) REFERENCES strategie(id_strategie) ON DELETE CASCADE
 );
+
+CREATE FUNCTION supprimer_tournois_apres_suppression_strategie() RETURNS TRIGGER AS $supprimer_tournois_apres_suppression_strategie$
+    BEGIN
+    DELETE FROM tournoi WHERE id_tournoi = OLD.id_tournoi;
+
+    RETURN OLD;
+    END;
+$supprimer_tournois_apres_suppression_strategie$ LANGUAGE plpgsql;
+
+CREATE TRIGGER supprimer_tournois_apres_suppression_strategie AFTER DELETE ON participation
+    FOR EACH ROW EXECUTE PROCEDURE supprimer_tournois_apres_suppression_strategie();
