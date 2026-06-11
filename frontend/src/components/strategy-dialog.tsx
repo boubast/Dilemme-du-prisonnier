@@ -1,0 +1,271 @@
+import { Save, Lightbulb } from "lucide-react"
+import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+import { useState, useEffect } from "react"
+import type { FormEvent } from "react"
+import {
+  fetchStrategyById,
+  createStrategy,
+  updateStrategy,
+} from "@/api/strategies"
+import { HELP_BLOCKS } from "@/constants"
+
+interface StrategyDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  strategyId: string | null
+  onSave: () => void
+}
+
+export function StrategyDialog({
+  open,
+  onOpenChange,
+  strategyId,
+  onSave,
+}: StrategyDialogProps) {
+  const [nom, setNom] = useState("")
+  const [explication, setExplication] = useState("")
+  const [scriptRhai, setScriptRhai] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+
+  // Charger la stratégie à éditer ou réinitialiser le formulaire pour une nouvelle stratégie
+  useEffect(() => {
+    if (!open) return
+
+    if (strategyId) {
+      const loadStrategy = async () => {
+        setIsLoading(true)
+        try {
+          const s = await fetchStrategyById(strategyId)
+          if (s) {
+            setNom(s.nom)
+            setExplication(s.explication)
+            setScriptRhai(s.script_rhai)
+          }
+        } catch (error) {
+          console.error("Erreur lors du chargement de la stratégie :", error)
+        } finally {
+          setIsLoading(false)
+        }
+      }
+      loadStrategy()
+      return
+    }
+
+    const resetForm = () => {
+      setNom("")
+      setExplication("")
+      setScriptRhai("")
+    }
+
+    resetForm()
+  }, [open, strategyId])
+
+  // Insérer un extrait de code dans le script Rhai
+  function insertSnippet(snippet: string) {
+    setScriptRhai((prev: string) => {
+      const sep = prev.trim() ? "\n\n" : ""
+      return prev + sep + snippet
+    })
+  }
+
+  // Gérer la soumission du formulaire pour créer ou mettre à jour une stratégie
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    if (!nom.trim() || !explication.trim() || !scriptRhai.trim()) return
+
+    setIsLoading(true)
+    const payload = {
+      nom: nom.trim(),
+      explication: explication.trim(),
+      script_rhai: scriptRhai.trim(),
+    }
+
+    try {
+      if (strategyId) {
+        await updateStrategy(strategyId, payload)
+      } else {
+        await createStrategy(payload)
+      }
+      onSave()
+      onOpenChange(false)
+    } catch (error) {
+      console.error("Erreur lors de l'enregistrement de la stratégie :", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        showCloseButton
+        className={cn(
+          "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
+          "h-[90vh] max-h-[90vh] sm:max-w-[90vw]",
+          "flex flex-col gap-0 overflow-hidden p-0",
+          "rounded-xl"
+        )}
+      >
+        <form onSubmit={handleSubmit} className="flex h-full flex-col">
+          {/* ── Header ── */}
+          <div className="shrink-0 border-b border-border px-6 py-4">
+            <h2 className="text-base font-semibold text-foreground">
+              {strategyId ? "Modifier la stratégie" : "Nouvelle stratégie"}
+            </h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {strategyId
+                ? "Modifiez le nom, la description ou le script Rhai de la stratégie."
+                : "Donnez un nom, une description et écrivez votre script Rhai."}
+            </p>
+          </div>
+
+          {/* ── Body (two columns, scrollable) ── */}
+          <div className="flex min-h-0 flex-1">
+            {/* Left — form */}
+            <div className="flex min-w-0 flex-1 flex-col gap-4 overflow-y-auto px-6 py-4">
+              {/* Nom */}
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="strategy-name"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Nom
+                </label>
+                <input
+                  id="strategy-name"
+                  type="text"
+                  placeholder="Ex. Tit for Two Tats"
+                  value={nom}
+                  onChange={(e) => setNom(e.target.value)}
+                  required
+                  autoFocus
+                  className={cn(
+                    "w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm",
+                    "focus:border-ring focus:ring-2 focus:ring-ring/50 focus:outline-none",
+                    "transition-colors"
+                  )}
+                />
+              </div>
+
+              {/* Description */}
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="strategy-desc"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Description
+                </label>
+                <input
+                  id="strategy-desc"
+                  type="text"
+                  placeholder="En une phrase, que fait cette stratégie ?"
+                  value={explication}
+                  onChange={(e) => setExplication(e.target.value)}
+                  required
+                  className={cn(
+                    "w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm",
+                    "focus:border-ring focus:ring-2 focus:ring-ring/50 focus:outline-none",
+                    "transition-colors"
+                  )}
+                />
+              </div>
+
+              {/* Script Rhai */}
+              <div className="flex min-h-0 flex-1 flex-col gap-1.5">
+                <div className="flex items-center justify-between">
+                  <label
+                    htmlFor="strategy-code"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    Script Rhai
+                  </label>
+                  <p className="text-[11px] text-muted-foreground">
+                    La fonction doit retourner{" "}
+                    <code className="rounded bg-muted px-1 font-mono">0</code>{" "}
+                    (coopérer) ou{" "}
+                    <code className="rounded bg-muted px-1 font-mono">1</code>{" "}
+                    (trahir).
+                  </p>
+                </div>
+                <textarea
+                  id="strategy-code"
+                  value={scriptRhai}
+                  onChange={(e) => setScriptRhai(e.target.value)}
+                  required
+                  spellCheck={false}
+                  className={cn(
+                    "min-h-50 w-full flex-1 rounded-md border border-input bg-muted/30",
+                    "resize-none px-3 py-2.5 font-mono text-sm leading-relaxed",
+                    "focus:border-ring focus:ring-2 focus:ring-ring/50 focus:outline-none",
+                    "transition-colors"
+                  )}
+                  style={{ height: "100%" }}
+                />
+              </div>
+            </div>
+
+            {/* Right — blocs d'aide */}
+            <aside className="flex w-72 shrink-0 flex-col border-l border-border bg-muted/20">
+              {/* Scrollable content */}
+              <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-4">
+                <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+                  <Lightbulb className="size-4 text-yellow-500" />
+                  Blocs d'aide
+                </div>
+                <p className="text-[11px] leading-relaxed text-muted-foreground">
+                  Cliquez pour insérer un extrait de code Rhai courant.
+                </p>
+
+                <div className="flex flex-col gap-2">
+                  {HELP_BLOCKS.map((block) => (
+                    <button
+                      key={block.title}
+                      type="button"
+                      onClick={() => insertSnippet(block.snippet)}
+                      className={cn(
+                        "w-full rounded-lg border border-border bg-card px-3 py-2.5 text-left",
+                        "cursor-pointer transition-all duration-150",
+                        "hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm",
+                        "active:scale-[0.98]"
+                      )}
+                    >
+                      <p className="text-xs font-semibold text-foreground">
+                        {block.title}
+                      </p>
+                      <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
+                        {block.description}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sticky Footer */}
+              <div className="flex shrink-0 items-center justify-between gap-2 border-t border-border bg-muted/30 px-4 py-3">
+                <DialogClose asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 justify-center"
+                  >
+                    Annuler
+                  </Button>
+                </DialogClose>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="flex-1 justify-center gap-1.5"
+                >
+                  <Save className="size-3.5" />
+                  {isLoading ? "Enregistrement..." : "Enregistrer"}
+                </Button>
+              </div>
+            </aside>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { Search, X, Play, Cpu, User } from "lucide-react"
+import { Search, X, Play, Cpu, User, Plus } from "lucide-react"
 import type { Couts, Strategie, TournamentConfig } from "@/type"
-import { fetchStrategies } from "@/api/strategies"
+import { fetchStrategies, deleteStrategy } from "@/api/strategies"
 import { createTournament } from "@/api/tournament"
 import { DEFAULT_PAYOFFS } from "@/mock/mocks"
 import { Button } from "./ui/button"
@@ -13,6 +13,7 @@ import { PayoffInput } from "./payoff-input"
 import { AddStrategyButton } from "./add-strategy-button"
 import { PayoffMatrix } from "./payoff-matrix"
 import { Separator } from "./ui/separator"
+import { StrategyDialog } from "./strategy-dialog"
 
 export default function TournamentConfig() {
   const [allStrategies, setAllStrategies] = useState<Strategie[]>([])
@@ -23,6 +24,12 @@ export default function TournamentConfig() {
   const [payoffs, setPayoffs] = useState<Couts>(DEFAULT_PAYOFFS)
   const [isLoading, setIsLoading] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
+
+  // Dialog State
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [editingStrategyId, setEditingStrategyId] = useState<string | null>(
+    null
+  )
 
   const loadStrategies = useCallback(async () => {
     const strategies = await fetchStrategies()
@@ -55,6 +62,27 @@ export default function TournamentConfig() {
     setSelectedIds((prev) => prev.filter((s) => s !== id))
   }
 
+  const handleEditStrategy = useCallback((id: string) => {
+    setEditingStrategyId(id)
+    setIsDialogOpen(true)
+  }, [])
+
+  const handleDeleteStrategy = useCallback(
+    async (id: string) => {
+      if (confirm("Voulez-vous vraiment supprimer cette stratégie ?")) {
+        await deleteStrategy(id)
+        await loadStrategies()
+        setSelectedIds((prev) => prev.filter((sid) => sid !== id))
+      }
+    },
+    [loadStrategies]
+  )
+
+  const handleAddStrategy = useCallback(() => {
+    setEditingStrategyId(null)
+    setIsDialogOpen(true)
+  }, [])
+
   function updatePayoff(key: keyof Couts, value: number) {
     setPayoffs((prev) => ({ ...prev, [key]: value }))
   }
@@ -85,13 +113,20 @@ export default function TournamentConfig() {
               Sélectionner les stratégies
             </h2>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              {selectedIds.length} sélectionnée
+              {selectedIds.length}/{allStrategies.length} sélectionnée
               {selectedIds.length > 1 ? "s" : ""}
             </p>
           </div>
-          <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-            {allStrategies.length} disponibles
-          </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleAddStrategy}
+            className="cursor-pointer border-primary text-primary hover:bg-primary/10"
+          >
+            <Plus className="size-3.5" />
+            Ajouter une stratégie
+          </Button>
         </div>
 
         {/* Tags des stratégies sélectionnées */}
@@ -136,7 +171,13 @@ export default function TournamentConfig() {
         {availableStrategies.length > 0 ? (
           <div className="grid grid-cols-2 gap-2">
             {availableStrategies.map((s) => (
-              <StrategyCard key={s.id} strategie={s} onSelect={handleSelect} />
+              <StrategyCard
+                key={s.id}
+                strategie={s}
+                onSelect={handleSelect}
+                onEdit={handleEditStrategy}
+                onDelete={handleDeleteStrategy}
+              />
             ))}
           </div>
         ) : (
@@ -148,7 +189,7 @@ export default function TournamentConfig() {
         )}
 
         <div className="mt-2">
-          <AddStrategyButton onStrategyAdded={loadStrategies} />
+          <AddStrategyButton onClick={handleAddStrategy} />
         </div>
       </section>
 
@@ -280,6 +321,13 @@ export default function TournamentConfig() {
           {isLoading ? "Lancement…" : "Lancer le tournoi"}
         </Button>
       </div>
+
+      <StrategyDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        strategyId={editingStrategyId}
+        onSave={loadStrategies}
+      />
     </div>
   )
 }

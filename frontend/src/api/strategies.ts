@@ -29,11 +29,45 @@ export async function createStrategy(
   strategy: Omit<Strategie, "id">
 ): Promise<Strategie> {
   await new Promise((r) => setTimeout(r, 0))
+  const nextId = String(
+    Math.max(...MOCK_STRATEGIES.map((s) => parseInt(s.id) || 0), 0) + 1
+  )
   const newStrategy: Strategie = {
     ...strategy,
-    id: String(MOCK_STRATEGIES.length + 1),
+    id: nextId,
   }
   MOCK_STRATEGIES.push(newStrategy)
   return newStrategy
+}
+
+/**
+ * Met à jour une stratégie existante.
+ */
+export async function updateStrategy(
+  id: string,
+  strategy: Omit<Strategie, "id">
+): Promise<Strategie> {
+  await new Promise((r) => setTimeout(r, 0))
+  const index = MOCK_STRATEGIES.findIndex((s) => s.id === id)
+  if (index === -1) {
+    throw new Error("Stratégie non trouvée")
+  }
+  const updatedStrategy: Strategie = {
+    ...strategy,
+    id,
+  }
+  MOCK_STRATEGIES[index] = updatedStrategy
+  return updatedStrategy
+}
+
+/**
+ * Supprime une stratégie par son identifiant.
+ */
+export async function deleteStrategy(id: string): Promise<void> {
+  await new Promise((r) => setTimeout(r, 0))
+  const index = MOCK_STRATEGIES.findIndex((s) => s.id === id)
+  if (index !== -1) {
+    MOCK_STRATEGIES.splice(index, 1)
+  }
 }
 
