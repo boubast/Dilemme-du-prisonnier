@@ -6,6 +6,7 @@ import { createTournament } from "@/api/tournament"
 import { DEFAULT_PAYOFFS } from "@/mock/mocks"
 import { Button } from "./ui/button"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 import { SelectedTag } from "./selected-tag"
 import { StrategyCard } from "./strategy-card"
@@ -22,7 +23,11 @@ interface TournamentConfigProps {
 export default function TournamentConfig({
   onTournamentCreated,
 }: TournamentConfigProps) {
-  const { strategies: allStrategies, reload: loadStrategies, removeStrategy } = useStrategy(true)
+  const {
+    strategies: allStrategies,
+    reload: loadStrategies,
+    removeStrategy,
+  } = useStrategy(true)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [search, setSearch] = useState("")
   const [gameMode, setGameMode] = useState<"machine" | "homme">("machine")
@@ -65,8 +70,16 @@ export default function TournamentConfig({
   const handleDeleteStrategy = useCallback(
     async (id: string) => {
       if (confirm("Voulez-vous vraiment supprimer cette stratégie ?")) {
-        await removeStrategy(id)
-        setSelectedIds((prev) => prev.filter((sid) => sid !== id))
+        try {
+          await removeStrategy(id)
+          setSelectedIds((prev) => prev.filter((sid) => sid !== id))
+          toast.success("Stratégie supprimée avec succès.")
+        } catch (e: unknown) {
+          const err = e as Error
+          toast.error(
+            "Erreur lors de la suppression de la stratégie : " + err.message
+          )
+        }
       }
     },
     [removeStrategy]
@@ -91,7 +104,11 @@ export default function TournamentConfig({
     setIsLoading(true)
     try {
       await createTournament(config)
+      toast.success("Tournoi lancé avec succès !")
       onTournamentCreated()
+    } catch (e: unknown) {
+      const err = e as Error
+      toast.error("Erreur lors du lancement du tournoi : " + err.message)
     } finally {
       setIsLoading(false)
     }

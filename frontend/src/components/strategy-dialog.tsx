@@ -1,6 +1,7 @@
 import { Save, Lightbulb } from "lucide-react"
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import type { FormEvent } from "react"
 import { useStrategy } from "@/hooks/useStrategy"
@@ -82,8 +83,15 @@ export function StrategyDialog({
     e.preventDefault()
     const success = await save()
     if (success) {
+      toast.success(
+        strategyId
+          ? "Stratégie modifiée avec succès."
+          : "Stratégie créée avec succès."
+      )
       onSave()
       onOpenChange(false)
+    } else {
+      toast.error("Erreur lors de l'enregistrement de la stratégie.")
     }
   }
 
