@@ -1,53 +1,77 @@
-from choix import choix
-from strategie import strategie
+from app.choix import choix
+from sqlalchemy.orm import Session
 
-def partie(nb_iterations,
-           cout_trahison,
-           cout_cooperation,
-           cout_trahison_cooperation,
-           cout_cooperation_trahison,
-           id_strategie1,
-           id_strategie2):
-    
-    cout_trahison = str(cout_trahison)
-    cout_cooperation = str(cout_cooperation)
-    cout_trahison_cooperation = str(cout_trahison_cooperation)
-    cout_cooperation_trahison = str(cout_cooperation_trahison)
-    
-    script1 = strategie.get(id_strategie1)
-    script2 = strategie.get(id_strategie2)
+from app.models import Iteration, Strategie
+from app.models import Partie as PartieModel
+from app.database import SessionLocal
 
-    #TODO : A supprimer
-    actions_strat1 = []
-    actions_strat2 = []
-    
-    actions_strat1_str = "["
-    actions_strat2_str = "["
-    choix_strat1 = ""
-    choix_strat2 = ""
-    
-    for iteration in range(nb_iterations):
-        choix_strat1 = choix(script1,actions_strat1_str + "]",actions_strat2_str + "]",
-                                    cout_trahison,
-                                    cout_cooperation,
-                                    cout_trahison_cooperation,
-                                    cout_cooperation_trahison)
-        choix_strat2 = choix(script2,actions_strat2_str + "]",actions_strat1_str + "]",
-                                    cout_trahison,
-                                    cout_cooperation,
-                                    cout_trahison_cooperation,
-                                    cout_cooperation_trahison)
+class Partie:
+    id_partie: int
+    score_strategie_1 = 0
+    score_strategie_2 = 0
+    resultats = {}
+
+    def __init__(self,id_strategie_1,id_strategie_2,id_tournoi):
+        self.id_strategie_1 = id_strategie_1
+        self.id_strategie_2 = id_strategie_2
+        self.id_tournoi = id_tournoi
+
+        partie = PartieModel(id_strategie_1=id_strategie_1,id_strategie_2=id_strategie_2,id_tournoi=id_tournoi)
+        db = SessionLocal()
+
+        try:
+            db.add(partie)
+            db.commit()
+            db.refresh(partie)
+            self.id_partie = partie.id_partie
+        finally:
+            db.close()
+
+    def execute(self,nb_iterations,cout_coop_coop,cout_coop_trahi,cout_trahi_coop,cout_trahi_trahi):
+        cout_trahi_trahi = str(cout_trahi_trahi)
+        cout_coop_coop = str(cout_coop_coop)
+        cout_trahi_coop = str(cout_trahi_coop)
+        cout_coop_trahi = str(cout_coop_trahi)
         
-        #TODO : Création Itérations
-        actions_strat1.append(int(choix_strat1))
-        actions_strat2.append(int(choix_strat2))
+        db = SessionLocal()
 
-        if iteration==0: #On en met pas de virgule avant le premier élément des listes
-            actions_strat1_str = actions_strat1_str + choix_strat1
-            actions_strat2_str = actions_strat2_str + choix_strat2
-        else:
-            actions_strat1_str = actions_strat1_str + "," + choix_strat1
-            actions_strat2_str = actions_strat2_str + "," + choix_strat2
+        try:
+            strategie_1 = db.get(Strategie, self.id_strategie_1)
+            strategie_2 = db.get(Strategie, self.id_strategie_2)
+            script1 = strategie_1.script_rhai
+            script2 = strategie_2.script_rhai
+            
+            actions_strat1_str = "["
+            actions_strat2_str = "["
+            choix_strat1 = ""
+            choix_strat2 = ""
+            
+            for no_iteration in range(nb_iterations):
+                choix_strat1 = choix(script1,actions_strat1_str + "]",actions_strat2_str + "]",
+                                            cout_trahi_trahi,
+                                            cout_coop_coop,
+                                            cout_trahi_coop,
+                                            cout_coop_trahi)
+                choix_strat2 = choix(script2,actions_strat2_str + "]",actions_strat1_str + "]",
+                                            cout_trahi_trahi,
+                                            cout_coop_coop,
+                                            cout_trahi_coop,
+                                            cout_coop_trahi)
+                
+                iteration = Iteration(id_partie=self.id_partie,
+                                      numero_iteration=no_iteration+1,
+                                      choix_strategie_1=int(choix_strat1),
+                                      choix_strategie_2=int(choix_strat2))
+                db.add(iteration)
 
-    #TODO : A supprimer
-    return actions_strat1,actions_strat2
+                if no_iteration==0: #On en met pas de virgule avant le premier élément des listes
+                    actions_strat1_str = actions_strat1_str + choix_strat1
+                    actions_strat2_str = actions_strat2_str + choix_strat2
+                else:
+                    actions_strat1_str = actions_strat1_str + "," + choix_strat1
+                    actions_strat2_str = actions_strat2_str + "," + choix_strat2
+            
+            db.commit()
+            db.refresh(iteration)
+        finally:
+            db.close()

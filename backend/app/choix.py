@@ -3,9 +3,9 @@ import platform
 
 # Sélection de l'exécutable en fonction de l'OS
 if platform.system() == "Windows":
-    executable = "./rhai_runner/executables/rhai_runner.exe"
+    executable = "./backend/app/rhai_runner/executables/rhai_runner.exe"
 else:
-    executable = "./rhai_runner/executables/rhai_runner"
+    executable = "./backend/app/rhai_runner/executables/rhai_runner"
 
 def choix(script,
           actions_courante,
