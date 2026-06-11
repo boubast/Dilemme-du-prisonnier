@@ -1,0 +1,90 @@
+import type { Tournoi } from "@/type"
+import { cn } from "@/lib/utils"
+import { Badge } from "./ui/badge"
+
+interface TournamentHistoryProps {
+  tournaments: Tournoi[]
+  selectedId: string | null
+  onSelect: (id: string) => void
+  loading: boolean
+}
+
+export default function TournamentHistory({
+  tournaments,
+  selectedId,
+  onSelect,
+  loading,
+}: TournamentHistoryProps) {
+  return (
+    <section className="flex w-1/3 flex-col gap-3 rounded-xl border border-border bg-card p-4">
+      <div>
+        <h2 className="text-sm font-semibold text-foreground">
+          Historique des tournois
+        </h2>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Les expériences récentes
+        </p>
+      </div>
+
+      <div className="mt-2 flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto">
+        {loading ? (
+          <div className="flex flex-col gap-2.5">
+            {[1, 2, 3].map((n) => (
+              <div
+                key={n}
+                className="h-20 animate-pulse rounded-lg border border-border bg-muted/20"
+              />
+            ))}
+          </div>
+        ) : tournaments.length === 0 ? (
+          <p className="py-6 text-center text-xs text-muted-foreground">
+            Aucun tournoi enregistré.
+          </p>
+        ) : (
+          tournaments.map((t, index) => {
+            const isActive = t.id === selectedId
+            const isRecent = index === 0 // Le premier de la liste triée
+
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => onSelect(t.id)}
+                className={cn(
+                  "group relative w-full cursor-pointer rounded-lg border p-3.5 text-left transition-all duration-150",
+                  isActive
+                    ? "border-primary bg-primary/5 shadow-xs"
+                    : "border-border bg-card hover:border-primary/30 hover:bg-muted/10"
+                )}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <span
+                    className={cn(
+                      "text-xs leading-none font-semibold",
+                      isActive
+                        ? "text-primary"
+                        : "text-foreground transition-colors group-hover:text-primary"
+                    )}
+                  >
+                    {t.nom}
+                  </span>
+                  {isRecent && (
+                    <Badge
+                      variant="secondary"
+                      className="h-4 shrink-0 rounded-sm border-none bg-primary/10 px-1 py-0 text-[9px] font-semibold tracking-wide text-primary uppercase"
+                    >
+                      Récent
+                    </Badge>
+                  )}
+                </div>
+                <p className="mt-2 text-[10px] leading-none text-muted-foreground">
+                  {t.date_creation}
+                </p>
+              </button>
+            )
+          })
+        )}
+      </div>
+    </section>
+  )
+}

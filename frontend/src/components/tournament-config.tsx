@@ -15,7 +15,13 @@ import { PayoffMatrix } from "./payoff-matrix"
 import { Separator } from "./ui/separator"
 import { StrategyDialog } from "./strategy-dialog"
 
-export default function TournamentConfig() {
+interface TournamentConfigProps {
+  onTournamentCreated: () => void
+}
+
+export default function TournamentConfig({
+  onTournamentCreated,
+}: TournamentConfigProps) {
   const [allStrategies, setAllStrategies] = useState<Strategie[]>([])
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [search, setSearch] = useState("")
@@ -97,6 +103,7 @@ export default function TournamentConfig() {
     setIsLoading(true)
     try {
       await createTournament(config)
+      onTournamentCreated()
     } finally {
       setIsLoading(false)
     }
