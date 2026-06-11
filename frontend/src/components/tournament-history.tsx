@@ -1,6 +1,7 @@
 import type { Tournoi } from "@/type"
 import { cn } from "@/lib/utils"
 import { Badge } from "./ui/badge"
+import { Crown } from "lucide-react"
 
 interface TournamentHistoryProps {
   tournaments: Tournoi[]
@@ -81,7 +82,10 @@ export default function TournamentHistory({
                   <p className="text-[10px] leading-none text-muted-foreground">
                     {t.date_creation}
                   </p>
-                  <Badge variant={"outline"}>{t.meilleure_strategie}</Badge>
+                  <Badge variant={"outline"}>
+                    {" "}
+                    <Crown /> {t.meilleure_strategie}
+                  </Badge>
                 </div>
               </button>
             )
