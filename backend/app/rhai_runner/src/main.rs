@@ -1,4 +1,6 @@
 use rhai::{Engine, EvalAltResult};
+use rhai::packages::Package;
+use rhai_rand::RandomPackage;
 use std::env;
 
 fn main() -> Result<(), Box<EvalAltResult>> {
@@ -16,20 +18,24 @@ fn main() -> Result<(), Box<EvalAltResult>> {
     let cout_trahison_cooperation = env::args().nth(6).expect("coût 3 manquant");
     let cout_cooperation_trahison = env::args().nth(7).expect("coût 4 manquant");
 
-    let engine = Engine::new();
+    let mut engine = Engine::new();
+
+    // Ajout de la gestion d'aléatoire
+    engine.register_global_module(RandomPackage::new().as_shared_module());
 
     // Ajout des variables outils au script
-    let init_variables = format!("let derniers_coups_strategie_courante = {derniers_coups_strategie_courante};
+    let debut_fonction = "fn choix(){";
+    let init_variables = format!("
+                        let derniers_coups_strategie_courante = {derniers_coups_strategie_courante};
                         let derniers_coups_strategie_adverse = {derniers_coups_strategie_adverse};
                         let cout_trahison = {cout_trahison};
                         let cout_cooperation = {cout_cooperation};
                         let cout_trahison_cooperation = {cout_trahison_cooperation};
-                        let cout_cooperation_trahison = {cout_cooperation_trahison};
-                        ");
-    let script_complet = format!("{init_variables}{script}");
+                        let cout_cooperation_trahison = {cout_cooperation_trahison};");
+    let renvoi_choix = ";};print(choix());";
+    let script_complet = format!("{debut_fonction}{init_variables}{script}{renvoi_choix}");
 
     // Exécution du script
-    //let result = engine.eval::<i64>(&script_complet)?;
     match engine.eval::<rhai::Dynamic>(&script_complet) {
         // Réussite de l'exécution
         Ok(_result) => {Ok(())},
@@ -43,8 +49,8 @@ fn main() -> Result<(), Box<EvalAltResult>> {
 }
 
 // depuis Windows
-//cargo build --release
-//cargo build --release --target wasm32-wasip1
+// cargo build --release
+// inutilisé : cargo build --release --target wasm32-wasip1
 
 
 // depuis Linux (WSL)
