@@ -17,27 +17,27 @@ export default function TournamentStats({
 
   if (loading) {
     return (
-      <section className="flex w-2/3 flex-col gap-4 rounded-xl border border-border bg-card p-5 animate-pulse min-h-120">
-        <div className="h-6 w-1/3 bg-muted rounded" />
-        <div className="h-4 w-1/2 bg-muted rounded" />
-        <div className="flex gap-2 mt-2">
-          <div className="h-5 w-20 bg-muted rounded-full" />
-          <div className="h-5 w-28 bg-muted rounded-full" />
-          <div className="h-5 w-24 bg-muted rounded-full" />
+      <section className="flex min-h-120 w-2/3 animate-pulse flex-col gap-4 rounded-xl border border-border bg-card p-5">
+        <div className="h-6 w-1/3 rounded bg-muted" />
+        <div className="h-4 w-1/2 rounded bg-muted" />
+        <div className="mt-2 flex gap-2">
+          <div className="h-5 w-20 rounded-full bg-muted" />
+          <div className="h-5 w-28 rounded-full bg-muted" />
+          <div className="h-5 w-24 rounded-full bg-muted" />
         </div>
-        <div className="h-8 w-48 bg-muted rounded-lg mt-4" />
-        <div className="h-32 w-full bg-muted rounded mt-2" />
+        <div className="mt-4 h-8 w-48 rounded-lg bg-muted" />
+        <div className="mt-2 h-32 w-full rounded bg-muted" />
       </section>
     )
   }
 
   if (!tournament) {
     return (
-      <section className="flex w-2/3 flex-col items-center justify-center gap-2 rounded-xl border border-border bg-card p-8 text-center text-muted-foreground min-h-120">
+      <section className="flex min-h-120 w-2/3 flex-col items-center justify-center gap-2 rounded-xl border border-border bg-card p-8 text-center text-muted-foreground">
         <p className="text-sm font-medium">
           Aucun tournoi sélectionné ou disponible.
         </p>
-        <p className="text-xs text-muted-foreground max-w-xs mt-1">
+        <p className="mt-1 max-w-xs text-xs text-muted-foreground">
           Configurez et lancez un tournoi ci-dessus pour générer des
           statistiques.
         </p>
@@ -49,33 +49,30 @@ export default function TournamentStats({
   const modeLabel = isHuman ? "Homme vs Machine" : "Machine vs Machine"
 
   return (
-    <section className="flex w-2/3 flex-col gap-4 rounded-xl border border-border bg-card p-5 min-h-120">
+    <section className="flex min-h-120 w-2/3 flex-col gap-4 rounded-xl border border-border bg-card p-5">
       {/* En-tête */}
-      <div>
+      <div className="flex gap-4">
         <h2 className="text-sm font-semibold text-foreground">
           {tournament.nom}
         </h2>
-        <p className="mt-0.5 text-xs text-muted-foreground">
-          Détail du tournoi &middot; {tournament.date_creation}
-        </p>
 
         {/* Badges descriptifs */}
-        <div className="flex flex-wrap gap-1.5 mt-3">
+        <div className="flex flex-wrap gap-1.5">
           <Badge
             variant="secondary"
-            className="h-5 px-2 text-[10px] font-medium bg-muted text-muted-foreground border-none"
+            className="h-5 border-none bg-muted px-2 text-[10px] font-medium text-muted-foreground"
           >
             {tournament.nb_iterations} itérations
           </Badge>
           <Badge
             variant="secondary"
-            className="h-5 px-2 text-[10px] font-medium bg-muted text-muted-foreground border-none"
+            className="h-5 border-none bg-muted px-2 text-[10px] font-medium text-muted-foreground"
           >
             {modeLabel}
           </Badge>
           <Badge
             variant="secondary"
-            className="h-5 px-2 text-[10px] font-medium bg-muted text-muted-foreground border-none"
+            className="h-5 border-none bg-muted px-2 text-[10px] font-medium text-muted-foreground"
           >
             {tournament.strategies.length} stratégies
           </Badge>
@@ -85,30 +82,30 @@ export default function TournamentStats({
       {/* Navigation par onglets (Tabs) */}
       <Tabs
         defaultValue="results"
-        className="w-full flex-1 flex flex-col min-h-0 mt-2"
+        className="mt-2 flex min-h-0 w-full flex-1 flex-col"
       >
-        <TabsList className="bg-muted p-0.75 rounded-lg shrink-0 w-fit">
+        <TabsList className="w-fit shrink-0 rounded-lg bg-muted p-0.75">
           <TabsTrigger
             value="results"
-            className="px-3 py-1 text-xs cursor-pointer"
+            className="cursor-pointer px-3 py-1 text-xs"
           >
             Résultats
           </TabsTrigger>
           <TabsTrigger
             value="matches"
-            className="px-3 py-1 text-xs cursor-pointer"
+            className="cursor-pointer px-3 py-1 text-xs"
           >
             Parties
           </TabsTrigger>
           <TabsTrigger
             value="insights"
-            className="px-3 py-1 text-xs cursor-pointer"
+            className="cursor-pointer px-3 py-1 text-xs"
           >
             Insights
           </TabsTrigger>
         </TabsList>
 
-        <div className="flex-1 overflow-y-auto mt-2 min-h-0">
+        <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
           <TabsContent value="results" className="mt-0 outline-none">
             <TournamentResultsTab tournoi={tournament} />
           </TabsContent>

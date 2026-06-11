@@ -1,4 +1,4 @@
-import type { Tournoi, Partie } from "@/type"
+import type { Tournoi } from "@/type"
 import { Badge } from "./ui/badge"
 import { cn } from "@/lib/utils"
 
@@ -9,30 +9,6 @@ interface TournamentMatchesTabProps {
 export default function TournamentMatchesTab({
   tournoi,
 }: TournamentMatchesTabProps) {
-  const getMatchScores = (p: Partie) => {
-    let score1 = 0
-    let score2 = 0
-    p.iterations.forEach((iter) => {
-      const m1 = iter.coup_strategie1
-      const m2 = iter.coup_strategie2
-
-      if (m1 && m2) {
-        score1 += tournoi.couts.recompense
-        score2 += tournoi.couts.recompense
-      } else if (m1 && !m2) {
-        score1 += tournoi.couts.dupe
-        score2 += tournoi.couts.tentation
-      } else if (!m1 && m2) {
-        score1 += tournoi.couts.tentation
-        score2 += tournoi.couts.dupe
-      } else {
-        score1 += tournoi.couts.punition
-        score2 += tournoi.couts.punition
-      }
-    })
-    return { score1, score2 }
-  }
-
   return (
     <div className="flex flex-col gap-4 py-2 animate-in fade-in duration-150">
       <div>
@@ -46,9 +22,10 @@ export default function TournamentMatchesTab({
         </p>
       </div>
 
-      <div className="flex flex-col gap-2 max-h-[400px] overflow-y-auto pr-1">
+      <div className="flex flex-col gap-2 max-h-100 overflow-y-auto pr-1">
         {tournoi.parties.map((p, index) => {
-          const { score1, score2 } = getMatchScores(p)
+          const score1 = p.scoreStrategie1
+          const score2 = p.scoreStrategie2
           const isWinner1 = score1 > score2
           const isWinner2 = score2 > score1
 

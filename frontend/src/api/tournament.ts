@@ -1,5 +1,9 @@
 import type { Tournoi, TournamentConfig } from "@/type"
-import { MOCK_TOURNOIS, generateMockTournoi, MOCK_STRATEGIES } from "@/mock/mocks"
+import {
+  MOCK_TOURNOIS,
+  generateMockTournoi,
+  MOCK_STRATEGIES,
+} from "@/mock/mocks"
 
 /**
  * Récupère l'historique de tous les tournois.
@@ -59,4 +63,72 @@ export async function createTournament(
 
   MOCK_TOURNOIS.push(newTournoi)
   return newTournoi
+}
+
+// Fonctions utilitaires
+
+export const getTournamentStats = (tournoi: Tournoi) => {
+  return tournoi.strategies.map((s) => {
+    let scoreTotal = 0
+    let totalTours = 0
+    let victoires = 0
+    let nuls = 0
+    let defaites = 0
+
+    tournoi.parties.forEach((p) => {
+      const isS1 = p.strategie1.id === s.id
+      const isS2 = p.strategie2.id === s.id
+      if (!isS1 && !isS2) return
+
+      let myScore = 0
+      let opponentScore = 0
+
+      p.iterations.forEach((iter) => {
+        const m1 = iter.coup_strategie1
+        const m2 = iter.coup_strategie2
+
+        const players = {
+          p1: 0,
+          p2: 0,
+        }
+
+        if (m1 && m2) {
+          players.p1 = tournoi.couts.recompense
+          players.p2 = tournoi.couts.recompense
+        } else if (m1 && !m2) {
+          players.p1 = tournoi.couts.dupe
+          players.p2 = tournoi.couts.tentation
+        } else if (!m1 && m2) {
+          players.p1 = tournoi.couts.tentation
+          players.p2 = tournoi.couts.dupe
+        } else {
+          players.p1 = tournoi.couts.punition
+          players.p2 = tournoi.couts.punition
+        }
+
+        myScore += isS1 ? players.p1 : players.p2
+        opponentScore += isS1 ? players.p2 : players.p1
+      })
+
+      scoreTotal += myScore
+      totalTours += p.iterations.length
+
+      if (myScore > opponentScore) {
+        victoires += 1
+      } else if (myScore === opponentScore) {
+        nuls += 1
+      } else {
+        defaites += 1
+      }
+    })
+
+    return {
+      strategy: s,
+      scoreTotal,
+      totalTours,
+      victoires,
+      nuls,
+      defaites,
+    }
+  })
 }

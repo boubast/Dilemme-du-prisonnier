@@ -160,7 +160,7 @@ export function generateMockTournoi(
       const s2 = strategies[j]
       const partieId = `${id}_partie_${matchIdCounter++}`
 
-      const { iterations } = simulateMatch(
+      const { iterations, score1, score2 } = simulateMatch(
         s1,
         s2,
         nbIterations,
@@ -168,11 +168,20 @@ export function generateMockTournoi(
         partieId
       )
 
+      const resultatsPartie = {
+        victoire_strategie1: score1 > score2 ? 1 : 0,
+        victoire_strategie2: score2 > score1 ? 1 : 0,
+        nul: score1 === score2 ? 1 : 0,
+      }
+
       const partie: Partie = {
         id: partieId,
         strategie1: s1,
         strategie2: s2,
+        scoreStrategie1: score1,
+        scoreStrategie2: score2,
         iterations,
+        resultats: resultatsPartie,
       }
 
       iterations.forEach((iter) => {
@@ -183,41 +192,40 @@ export function generateMockTournoi(
     }
   }
 
-  // Calculer la meilleure stratégie du tournoi
-  const scores: Record<string, number> = {}
+  // Calculer les scores totaux et les résultats (VND) par stratégie
+  const scores_totaux: Record<string, number> = {}
+  const resultatsTournoi: Record<
+    string,
+    { victoires: number; nuls: number; defaites: number }
+  > = {}
+
   strategies.forEach((s) => {
-    scores[s.id] = 0
+    scores_totaux[s.id] = 0
+    resultatsTournoi[s.id] = { victoires: 0, nuls: 0, defaites: 0 }
   })
 
   parties.forEach((p) => {
-    let s1Score = 0
-    let s2Score = 0
-    p.iterations.forEach((iter) => {
-      const m1 = iter.coup_strategie1
-      const m2 = iter.coup_strategie2
-      if (m1 && m2) {
-        s1Score += payoffs.recompense
-        s2Score += payoffs.recompense
-      } else if (m1 && !m2) {
-        s1Score += payoffs.dupe
-        s2Score += payoffs.tentation
-      } else if (!m1 && m2) {
-        s1Score += payoffs.tentation
-        s2Score += payoffs.dupe
-      } else {
-        s1Score += payoffs.punition
-        s2Score += payoffs.punition
-      }
-    })
-    scores[p.strategie1.id] += s1Score
-    scores[p.strategie2.id] += s2Score
+    scores_totaux[p.strategie1.id] += p.scoreStrategie1
+    scores_totaux[p.strategie2.id] += p.scoreStrategie2
+
+    if (p.scoreStrategie1 > p.scoreStrategie2) {
+      resultatsTournoi[p.strategie1.id].victoires += 1
+      resultatsTournoi[p.strategie2.id].defaites += 1
+    } else if (p.scoreStrategie1 < p.scoreStrategie2) {
+      resultatsTournoi[p.strategie2.id].victoires += 1
+      resultatsTournoi[p.strategie1.id].defaites += 1
+    } else {
+      resultatsTournoi[p.strategie1.id].nuls += 1
+      resultatsTournoi[p.strategie2.id].nuls += 1
+    }
   })
 
+  // Trouver la meilleure stratégie
   let bestStrategyId = strategies[0]?.id || ""
   let bestScore = -1
   strategies.forEach((s) => {
-    if (scores[s.id] > bestScore) {
-      bestScore = scores[s.id]
+    if (scores_totaux[s.id] > bestScore) {
+      bestScore = scores_totaux[s.id]
       bestStrategyId = s.id
     }
   })
@@ -234,6 +242,8 @@ export function generateMockTournoi(
     strategies,
     parties,
     meilleure_strategie: meilleure,
+    resultats: resultatsTournoi,
+    scores_totaux,
   }
 }
 

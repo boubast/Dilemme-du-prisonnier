@@ -77,9 +77,12 @@ export default function TournamentHistory({
                     </Badge>
                   )}
                 </div>
-                <p className="mt-2 text-[10px] leading-none text-muted-foreground">
-                  {t.date_creation}
-                </p>
+                <div className="mt-1 flex items-center gap-2">
+                  <p className="text-[10px] leading-none text-muted-foreground">
+                    {t.date_creation}
+                  </p>
+                  <Badge variant={"outline"}>{t.meilleure_strategie}</Badge>
+                </div>
               </button>
             )
           })

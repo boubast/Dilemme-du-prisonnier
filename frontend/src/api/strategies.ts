@@ -70,4 +70,3 @@ export async function deleteStrategy(id: string): Promise<void> {
     MOCK_STRATEGIES.splice(index, 1)
   }
 }
-
