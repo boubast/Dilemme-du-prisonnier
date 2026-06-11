@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import { Search, X, Play, Cpu, User, Plus } from "lucide-react"
-import type { Couts, Strategie, TournamentConfig } from "@/type"
-import { fetchStrategies, deleteStrategy } from "@/api/strategies"
+import type { Couts, TournamentConfig } from "@/type"
+import { useStrategy } from "@/hooks/useStrategy"
 import { createTournament } from "@/api/tournament"
 import { DEFAULT_PAYOFFS } from "@/mock/mocks"
 import { Button } from "./ui/button"
@@ -22,7 +22,7 @@ interface TournamentConfigProps {
 export default function TournamentConfig({
   onTournamentCreated,
 }: TournamentConfigProps) {
-  const [allStrategies, setAllStrategies] = useState<Strategie[]>([])
+  const { strategies: allStrategies, reload: loadStrategies, removeStrategy } = useStrategy(true)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [search, setSearch] = useState("")
   const [gameMode, setGameMode] = useState<"machine" | "homme">("machine")
@@ -36,17 +36,6 @@ export default function TournamentConfig({
   const [editingStrategyId, setEditingStrategyId] = useState<string | null>(
     null
   )
-
-  const loadStrategies = useCallback(async () => {
-    const strategies = await fetchStrategies()
-    setAllStrategies([...strategies])
-  }, [])
-
-  // Charge les stratégies au montage (prêt pour un vrai appel API)
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadStrategies()
-  }, [loadStrategies])
 
   // Stratégies sélectionnées (objets complets)
   const selectedStrategies = allStrategies.filter((s) =>
@@ -76,12 +65,11 @@ export default function TournamentConfig({
   const handleDeleteStrategy = useCallback(
     async (id: string) => {
       if (confirm("Voulez-vous vraiment supprimer cette stratégie ?")) {
-        await deleteStrategy(id)
-        await loadStrategies()
+        await removeStrategy(id)
         setSelectedIds((prev) => prev.filter((sid) => sid !== id))
       }
     },
-    [loadStrategies]
+    [removeStrategy]
   )
 
   const handleAddStrategy = useCallback(() => {

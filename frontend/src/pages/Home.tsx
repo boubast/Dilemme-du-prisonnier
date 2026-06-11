@@ -1,38 +1,19 @@
-import { useEffect, useState, useCallback } from "react"
+import { useState } from "react"
 import TournamentConfig from "@/components/tournament-config"
 import TournamentHistory from "@/components/tournament-history"
 import TournamentStats from "@/components/tournament-stats"
-import { fetchTournaments } from "@/api/tournament"
-import type { Tournoi } from "@/type"
+import { useTournament } from "@/hooks/useTournament"
 
 const Home = () => {
-  const [tournaments, setTournaments] = useState<Tournoi[]>([])
+  const { tournaments, loading, reload } = useTournament(null, true)
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  const loadTournaments = useCallback(async () => {
-    setLoading(true)
-    try {
-      const list = await fetchTournaments()
-      setTournaments(list)
-    } catch (e) {
-      console.error("Erreur lors du chargement des tournois :", e)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadTournaments()
-  }, [loadTournaments])
 
   // Par défaut, on sélectionne le dernier tournoi de la liste (le plus récent)
   const activeTournamentId =
     selectedId || (tournaments.length > 0 ? tournaments[0].id : null)
 
   const handleTournamentCreated = async () => {
-    await loadTournaments()
+    await reload()
     // Réinitialise selectedId à null pour que le nouveau tournoi soit sélectionné par défaut
     setSelectedId(null)
   }
