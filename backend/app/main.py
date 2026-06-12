@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routers.strategies import router as strategies_router
 from app.routers.tournaments import router as tournaments_router
 
-FRONTEND_PORT = os.getenv("FRONTEND_PORT")
+FRONTEND_PORT = os.getenv("FRONTEND_PORT", "5173")
 API_PREFIX = os.getenv("API_PREFIX", "/api/v1")
 
 app = FastAPI()
