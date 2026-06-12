@@ -127,7 +127,6 @@ class Tournoi:
             db.refresh(tournoi)
         finally:
             db.close()
-        return self
 
     def execute(self):
         for i in range(len(self.liste_strategies)):
@@ -146,6 +145,3 @@ class Tournoi:
                         self.cout_coop_coop,
                         self.cout_trahi_coop,
                         self.cout_coop_trahi)
-        
-        # Lancement du calcul statistiques pour l'affichage immédiat + meilleure_strategie
-        self.generer_statistiques()

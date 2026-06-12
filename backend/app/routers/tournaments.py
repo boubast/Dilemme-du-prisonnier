@@ -9,6 +9,9 @@ from app.models.participation import Participation
 from app.models.partie import Partie
 from app.models.tournoi import Tournoi
 from app.schemas.tournoi import TournamentLaunchCreate, TournoiDetailRead, TournoiListRead
+from app.schemas.tournament import TournamentLaunchCreate
+
+from app.tournoi import Tournoi as TournoiMoteur
 
 router = APIRouter(prefix="/tournament", tags=["tournament"])
 
@@ -54,7 +57,14 @@ def launch_tournament(payload: TournamentLaunchCreate, db: Session = Depends(get
     db.commit()
     db.refresh(tournament)
 
-    # TODO: executer le tournoi entre les strategies selectionnees.
+    tournoi = TournoiMoteur(payload.nb_iterations,
+                            payload.cout_coop_coop,
+                            payload.cout_coop_trahi,
+                            payload.cout_trahi_coop,
+                            payload.cout_trahi_trahi,
+                            payload.strategie_ids)
+    tournoi.execute()
+
     return {
         "id_tournoi": tournament.id_tournoi,
         "nom_tournoi": f"Tournoi - {len(payload.strategie_ids)} strategies",

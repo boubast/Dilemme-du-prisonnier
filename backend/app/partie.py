@@ -74,6 +74,5 @@ class Partie:
                     actions_strat2_str = actions_strat2_str + "," + choix_strat2
             
             db.commit()
-            db.refresh(iteration)
         finally:
             db.close()
