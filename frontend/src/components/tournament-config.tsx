@@ -2,7 +2,6 @@ import { useCallback, useRef, useState } from "react"
 import { Search, X, Play, Cpu, User, Plus } from "lucide-react"
 import type { Couts, TournamentConfig } from "@/type"
 import { useStrategy } from "@/hooks/useStrategy"
-import { createTournament } from "@/api/tournament"
 import { DEFAULT_PAYOFFS } from "@/mock/mocks"
 import { Button } from "./ui/button"
 import { cn } from "@/lib/utils"
@@ -103,12 +102,11 @@ export default function TournamentConfig({
     }
     setIsLoading(true)
     try {
-      await createTournament(config)
-      toast.success("Tournoi lancé avec succès !")
+      console.log("Mock createTournament with config:", config)
+      toast.success("Tournoi lancé avec succès (simulation) !")
       onTournamentCreated()
-    } catch (e: unknown) {
-      const err = e as Error
-      toast.error("Erreur lors du lancement du tournoi : " + err.message)
+    } catch (e) {
+      toast.error("Erreur lors du lancement du tournoi.")
     } finally {
       setIsLoading(false)
     }
