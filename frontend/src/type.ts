@@ -5,11 +5,26 @@ export type Strategie = {
   script_rhai: string
 }
 
+type PartieResult = {
+  victoire_strategie1: number
+  victoire_strategie2: number
+  nul: number
+}
+
 export type Partie = {
   id: string
   strategie1: Strategie
   strategie2: Strategie
+  scoreStrategie1: number
+  scoreStrategie2: number
   iterations: Iteration[]
+  resultats: PartieResult
+}
+
+type VND = {
+  victoires: number
+  nuls: number
+  defaites: number
 }
 
 export type Tournoi = {
@@ -21,6 +36,8 @@ export type Tournoi = {
   date_creation: string
   meilleure_strategie: string
   strategies: Strategie[]
+  resultats: Record<string, VND>
+  scores_totaux: Record<string, number>
 }
 
 export type Iteration = {
