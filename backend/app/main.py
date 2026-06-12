@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers.strategies import router as strategies_router
+from app.routers.tournaments import router as tournaments_router
 
 FRONTEND_PORT = os.getenv("FRONTEND_PORT")
 API_PREFIX = os.getenv("API_PREFIX")
@@ -22,6 +23,7 @@ app.add_middleware(
 )
 
 app.include_router(strategies_router, prefix=API_PREFIX)
+app.include_router(tournaments_router, prefix=API_PREFIX)
 
 
 @app.get("/health")
