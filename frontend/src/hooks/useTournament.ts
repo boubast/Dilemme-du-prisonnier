@@ -4,6 +4,7 @@ import type { Tournoi, TournamentConfig } from "@/type"
 import {
   fetchTournaments,
   fetchTournamentById,
+  createTournament,
 } from "@/api/tournament"
 
 export function useTournament(
@@ -65,11 +66,11 @@ export function useTournament(
 
   const addTournament = useCallback(
     async (config: TournamentConfig) => {
-      console.log("Mock addTournament config:", config)
+      const newTournoi = await createTournament(config)
       if (autoLoadList) {
         await reload()
       }
-      return {} as Tournoi
+      return newTournoi
     },
     [autoLoadList, reload]
   )

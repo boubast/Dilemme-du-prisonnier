@@ -14,6 +14,7 @@ import { AddStrategyButton } from "./add-strategy-button"
 import { PayoffMatrix } from "./payoff-matrix"
 import { Separator } from "./ui/separator"
 import { StrategyDialog } from "./strategy-dialog"
+import { createTournament } from "@/api/tournament"
 
 interface TournamentConfigProps {
   onTournamentCreated: () => void
@@ -102,11 +103,12 @@ export default function TournamentConfig({
     }
     setIsLoading(true)
     try {
-      console.log("Mock createTournament with config:", config)
-      toast.success("Tournoi lancé avec succès (simulation) !")
+      await createTournament(config)
+      toast.success("Tournoi lancé avec succès !")
       onTournamentCreated()
-    } catch (e) {
-      toast.error("Erreur lors du lancement du tournoi.")
+    } catch (e: unknown) {
+      const err = e as Error
+      toast.error("Erreur lors du lancement du tournoi : " + err.message)
     } finally {
       setIsLoading(false)
     }
