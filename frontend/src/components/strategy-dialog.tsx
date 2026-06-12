@@ -2,14 +2,50 @@ import { Save, Lightbulb } from "lucide-react"
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { useState, useEffect } from "react"
 import type { FormEvent } from "react"
-import {
-  fetchStrategyById,
-  createStrategy,
-  updateStrategy,
-} from "@/api/strategies"
-import { HELP_BLOCKS } from "@/constants"
+import { useStrategy } from "@/hooks/useStrategy"
+
+interface HelpBlock {
+  title: string
+  description: string
+  snippet: string
+}
+
+const HELP_BLOCKS: HelpBlock[] = [
+  {
+    title: "Premier tour",
+    description: "Agir différemment au tout premier coup",
+    snippet: `if history.is_empty() {
+    return "C";
+}`,
+  },
+  {
+    title: "Dernier coup adverse",
+    description: "Lire le dernier coup de l'adversaire",
+    snippet: `let last = history[history.len() - 1];
+if last == "C" { "C" } else { "D" }`,
+  },
+  {
+    title: "A déjà trahi ?",
+    description: "Vérifier si l'adversaire a trahi",
+    snippet: `let betrayed = history.contains("D");
+if betrayed { "D" } else { "C" }`,
+  },
+  {
+    title: "Aléatoire",
+    description: "Choisir au hasard",
+    snippet: `if rand() > 0.5 { "C" } else { "D" }`,
+  },
+  {
+    title: "Compter les coopérations",
+    description: "Boucler sur l'historique",
+    snippet: `let coops = 0;
+for m in history {
+    if m == "C" { coops += 1; }
+}
+if coops > history.len() / 2 { "C" } else { "D" }`,
+  },
+]
 
 interface StrategyDialogProps {
   open: boolean
@@ -24,45 +60,17 @@ export function StrategyDialog({
   strategyId,
   onSave,
 }: StrategyDialogProps) {
-  const [nom, setNom] = useState("")
-  const [explication, setExplication] = useState("")
-  const [scriptRhai, setScriptRhai] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const {
+    nom,
+    setNom,
+    explication,
+    setExplication,
+    scriptRhai,
+    setScriptRhai,
+    loading: isLoading,
+    save,
+  } = useStrategy(false, strategyId, open)
 
-  // Charger la stratégie à éditer ou réinitialiser le formulaire pour une nouvelle stratégie
-  useEffect(() => {
-    if (!open) return
-
-    if (strategyId) {
-      const loadStrategy = async () => {
-        setIsLoading(true)
-        try {
-          const s = await fetchStrategyById(strategyId)
-          if (s) {
-            setNom(s.nom)
-            setExplication(s.explication)
-            setScriptRhai(s.script_rhai)
-          }
-        } catch (error) {
-          console.error("Erreur lors du chargement de la stratégie :", error)
-        } finally {
-          setIsLoading(false)
-        }
-      }
-      loadStrategy()
-      return
-    }
-
-    const resetForm = () => {
-      setNom("")
-      setExplication("")
-      setScriptRhai("")
-    }
-
-    resetForm()
-  }, [open, strategyId])
-
-  // Insérer un extrait de code dans le script Rhai
   function insertSnippet(snippet: string) {
     setScriptRhai((prev: string) => {
       const sep = prev.trim() ? "\n\n" : ""
@@ -70,30 +78,12 @@ export function StrategyDialog({
     })
   }
 
-  // Gérer la soumission du formulaire pour créer ou mettre à jour une stratégie
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!nom.trim() || !explication.trim() || !scriptRhai.trim()) return
-
-    setIsLoading(true)
-    const payload = {
-      nom: nom.trim(),
-      explication: explication.trim(),
-      script_rhai: scriptRhai.trim(),
-    }
-
-    try {
-      if (strategyId) {
-        await updateStrategy(strategyId, payload)
-      } else {
-        await createStrategy(payload)
-      }
+    const success = await save()
+    if (success) {
       onSave()
       onOpenChange(false)
-    } catch (error) {
-      console.error("Erreur lors de l'enregistrement de la stratégie :", error)
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -103,7 +93,7 @@ export function StrategyDialog({
         showCloseButton
         className={cn(
           "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
-          "h-[90vh] max-h-[90vh] sm:max-w-[90vw]",
+          "w-[95vw] sm:max-w-5xl h-[90vh] max-h-[90vh]",
           "flex flex-col gap-0 overflow-hidden p-0",
           "rounded-xl"
         )}
@@ -181,13 +171,6 @@ export function StrategyDialog({
                   >
                     Script Rhai
                   </label>
-                  <p className="text-[11px] text-muted-foreground">
-                    La fonction doit retourner{" "}
-                    <code className="rounded bg-muted px-1 font-mono">0</code>{" "}
-                    (coopérer) ou{" "}
-                    <code className="rounded bg-muted px-1 font-mono">1</code>{" "}
-                    (trahir).
-                  </p>
                 </div>
                 <textarea
                   id="strategy-code"
@@ -203,13 +186,20 @@ export function StrategyDialog({
                   )}
                   style={{ height: "100%" }}
                 />
+                <p className="text-[11px] text-muted-foreground">
+                  La fonction doit retourner{" "}
+                  <code className="rounded bg-muted px-1 font-mono">0</code>{" "}
+                  (coopérer) ou{" "}
+                  <code className="rounded bg-muted px-1 font-mono">1</code>{" "}
+                  (trahir).
+                </p>
               </div>
             </div>
 
             {/* Right — blocs d'aide */}
             <aside className="flex w-72 shrink-0 flex-col border-l border-border bg-muted/20">
               {/* Scrollable content */}
-              <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-4">
+              <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3 min-h-0">
                 <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
                   <Lightbulb className="size-4 text-yellow-500" />
                   Blocs d'aide
@@ -243,21 +233,13 @@ export function StrategyDialog({
               </div>
 
               {/* Sticky Footer */}
-              <div className="flex shrink-0 items-center justify-between gap-2 border-t border-border bg-muted/30 px-4 py-3">
+              <div className="shrink-0 flex items-center justify-between gap-2 border-t border-border bg-muted/30 px-4 py-3">
                 <DialogClose asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex-1 justify-center"
-                  >
+                  <Button type="button" variant="outline" className="flex-1 justify-center">
                     Annuler
                   </Button>
                 </DialogClose>
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="flex-1 justify-center gap-1.5"
-                >
+                <Button type="submit" disabled={isLoading} className="flex-1 justify-center gap-1.5">
                   <Save className="size-3.5" />
                   {isLoading ? "Enregistrement..." : "Enregistrer"}
                 </Button>
