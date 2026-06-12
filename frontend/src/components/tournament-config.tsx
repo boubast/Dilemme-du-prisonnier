@@ -2,7 +2,6 @@ import { useCallback, useRef, useState } from "react"
 import { Search, X, Play, Cpu, User, Plus } from "lucide-react"
 import type { Couts, TournamentConfig } from "@/type"
 import { useStrategy } from "@/hooks/useStrategy"
-import { createTournament } from "@/api/tournament"
 import { DEFAULT_PAYOFFS } from "@/mock/mocks"
 import { Button } from "./ui/button"
 import { cn } from "@/lib/utils"
@@ -15,6 +14,7 @@ import { AddStrategyButton } from "./add-strategy-button"
 import { PayoffMatrix } from "./payoff-matrix"
 import { Separator } from "./ui/separator"
 import { StrategyDialog } from "./strategy-dialog"
+import { createTournament } from "@/api/tournament"
 
 interface TournamentConfigProps {
   onTournamentCreated: () => void

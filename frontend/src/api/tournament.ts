@@ -1,31 +1,56 @@
-import type { Tournoi, TournamentConfig } from "@/type"
-import { MOCK_TOURNOIS } from "@/mock/mocks"
+import type { TournamentConfig, Tournoi } from "@/type"
+import {
+  mapTournoiDTOToTournoi,
+  mapTournoiListItemDTOToTournoi,
+  type TournoiDTO,
+  type TournoiListItemDTO,
+} from "@/dto/tournament"
 
 const API_URL =
   (import.meta.env.VITE_API_URL || "http://localhost:8000") +
   (import.meta.env.VITE_API_PREFIX || "/api/v1")
 
 /**
- * Récupère l'historique de tous les tournois.
+ * Récupère tous les tournois depuis le backend.
  */
 export async function fetchTournaments(): Promise<Tournoi[]> {
-  await new Promise((r) => setTimeout(r, 0))
-  // Trie par date de création descendante (le plus récent en premier)
-  return [...MOCK_TOURNOIS].sort(
-    (a, b) =>
-      new Date(b.date_creation.replace(/-/g, "/")).getTime() -
-      new Date(a.date_creation.replace(/-/g, "/")).getTime()
-  )
+  try {
+    const response = await fetch(`${API_URL}/tournament`)
+    if (!response.ok) {
+      throw new Error("Erreur lors de la récupération des tournois")
+    }
+
+    const data: TournoiListItemDTO[] = await response.json()
+    return data.map(mapTournoiListItemDTOToTournoi)
+  } catch (error) {
+    console.error("fetchTournaments error:", error)
+    throw error
+  }
 }
 
 /**
- * Récupère un tournoi spécifique par son ID.
+ * Récupère le détail d'un tournoi par son identifiant.
  */
 export async function fetchTournamentById(
   id: string
 ): Promise<Tournoi | undefined> {
-  await new Promise((r) => setTimeout(r, 0))
-  return MOCK_TOURNOIS.find((t) => t.id === id)
+  try {
+    const response = await fetch(`${API_URL}/tournament/${id}`)
+
+    if (response.status === 404) {
+      return undefined
+    }
+
+    if (!response.ok) {
+      throw new Error(`Erreur lors de la récupération du tournoi ${id}`)
+    }
+
+    const data: TournoiDTO = await response.json()
+    return mapTournoiDTOToTournoi(data)
+  } catch (error) {
+    console.error("fetchTournamentById error:", error)
+    throw error
+  }
 }
 
 /**
