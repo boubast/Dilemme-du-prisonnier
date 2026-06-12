@@ -16,9 +16,9 @@ class Partie:
         self.id_strategie_2 = id_strategie_2
         self.id_tournoi = id_tournoi
 
+        # Création de la partie en BD
         partie = PartieModel(id_strategie_1=id_strategie_1,id_strategie_2=id_strategie_2,id_tournoi=id_tournoi)
         db = SessionLocal()
-
         try:
             db.add(partie)
             db.commit()
@@ -36,6 +36,7 @@ class Partie:
         db = SessionLocal()
 
         try:
+            # Récupérer les scripts des stratégies
             strategie_1 = db.get(Strategie, self.id_strategie_1)
             strategie_2 = db.get(Strategie, self.id_strategie_2)
             script1 = strategie_1.script_rhai
@@ -58,6 +59,7 @@ class Partie:
                                             cout_trahi_coop,
                                             cout_coop_trahi)
                 
+                # Création de l'itération en BD
                 iteration = Iteration(id_partie=self.id_partie,
                                       numero_iteration=no_iteration+1,
                                       choix_strategie_1=int(choix_strat1),

@@ -14,7 +14,7 @@ class Tournoi:
     meilleure_strategie = ""
     resultats = {}
     scores_totaux = {}
-    parties_tournoi = []
+    parties = []
 
     def __init__(self, nb_iterations,cout_coop_coop,cout_coop_trahi,cout_trahi_coop,cout_trahi_trahi,liste_strategies):
         self.nb_iterations = nb_iterations
@@ -24,6 +24,7 @@ class Tournoi:
         self.cout_trahi_trahi = cout_trahi_trahi
         self.liste_strategies = liste_strategies
 
+        # Création du tournoi en BD
         tournoi = TournoiModel(nb_iterations=nb_iterations,
                                cout_coop_coop=cout_coop_coop,
                                cout_coop_trahi=cout_coop_trahi,
@@ -31,13 +32,13 @@ class Tournoi:
                                cout_trahi_trahi=cout_trahi_trahi,
                                date_creation=date.today())
         db = SessionLocal()
-
         try:
             db.add(tournoi)
             db.commit()
             db.refresh(tournoi)
             self.id_tournoi = tournoi.id_tournoi
 
+            # Création des participations (lien tournoi - stratégie) en BD
             for id_strategie in liste_strategies:
                 participation = Participation(id_tournoi=self.id_tournoi,id_strategie=id_strategie)
                 db.add(participation)
@@ -50,22 +51,26 @@ class Tournoi:
         db = SessionLocal()
 
         try:
-            strategies = db.scalars(select(Participation)
+            # Iitialisation des listes de statistiques tournoi
+            strategies_tournoi = db.scalars(select(Participation)
                                     .where(Participation.id_tournoi == self.id_tournoi)).all()
-            for strategie in strategies:
+            for strategie in strategies_tournoi:
                 self.resultats[strategie.id_strategie] = {"V":0,"D":0,"N":0}
                 self.scores_totaux[strategie.id_strategie] = 0
             
-            parties = db.scalars(select(PartieModel)
+            # Parcourir les parties du tournoi
+            parties_tournoi = db.scalars(select(PartieModel)
                                     .where(PartieModel.id_tournoi == self.id_tournoi)).all()
-            for partie in parties:
+            for partie in parties_tournoi:
                 iterations = db.scalars(select(Iteration)
                                         .where(Iteration.id_partie == partie.id_partie)).all()
                 score_strategie_1 = 0
                 score_strategie_2 = 0
                 partie.resultats= {"V1":0,"V2":0,"N":0}
                 
+                # Parcourir les itérations de la partie
                 for iteration in iterations:
+                    # Chargement des scores et des Victoire 1 / Victoire 2 / Nul
                     match iteration.choix_strategie_1:
                         case 0:
                             match iteration.choix_strategie_2:
@@ -87,11 +92,11 @@ class Tournoi:
                                     score_strategie_1 = score_strategie_1 + self.cout_trahi_trahi
                                     score_strategie_2 = score_strategie_2 + self.cout_trahi_trahi
                                     partie.resultats["N"] += 1
-                # Statistiques Partie
+                # Sauvegarde des statistiques Partie
                 partie.score_strategie_1 = score_strategie_1
                 partie.score_strategie_2 = score_strategie_2
 
-                # Stratistiques Tournoi
+                # Sauvegarde des statistiques Tournoi
                 self.scores_totaux[partie.id_strategie_1] += score_strategie_1
                 self.scores_totaux[partie.id_strategie_2] += score_strategie_2
                 
@@ -105,15 +110,21 @@ class Tournoi:
                     self.resultats[partie.id_strategie_1]["D"]+=1
                     self.resultats[partie.id_strategie_2]["V"]+=1
                 
-                self.parties_tournoi.append(partie)
+                self.parties.append(partie)
             
+            # Calcul et sauvegarde de la meilleure stratégie
             max_score = 0
-            for strategie in strategies:
+            for strategie in strategies_tournoi:
                 if self.scores_totaux[strategie.id_strategie] > max_score:
                     self.meilleure_strategie = db.get(Strategie, strategie.id_strategie).nom
                     max_score = self.scores_totaux[strategie.id_strategie]
                 elif self.scores_totaux[strategie.id_strategie] == max_score:
                     self.meilleure_strategie += " - " + db.get(Strategie, strategie.id_strategie).nom
+            
+            tournoi = db.get(TournoiModel, self.id_tournoi)
+            setattr(tournoi, "meilleure_strategie", self.meilleure_strategie)
+            db.commit()
+            db.refresh(tournoi)
         finally:
             db.close()
         return self
@@ -124,6 +135,7 @@ class Tournoi:
                     id_strategie1 = self.liste_strategies[i]
                     id_strategie2 = self.liste_strategies[j]
 
+                    # Création de la partie à exécuter
                     partie_courante = Partie(
                         id_strategie1,
                         id_strategie2,
@@ -134,5 +146,6 @@ class Tournoi:
                         self.cout_coop_coop,
                         self.cout_trahi_coop,
                         self.cout_coop_trahi)
-                    
+        
+        # Lancement du calcul statistiques pour l'affichage immédiat + meilleure_strategie
         self.generer_statistiques()
