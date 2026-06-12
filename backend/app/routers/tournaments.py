@@ -47,18 +47,6 @@ def get_tournament(tournoi_id: int, db: Session = Depends(get_db)) -> Tournoi:
 
 @router.post("/launch", status_code=status.HTTP_201_CREATED)
 def launch_tournament(payload: TournamentLaunchCreate, db: Session = Depends(get_db)) -> dict[str, int | str]:
-    tournament = Tournoi(
-        nb_iterations=payload.nb_iterations,
-        cout_coop_coop=payload.cout_coop_coop,
-        cout_coop_trahi=payload.cout_coop_trahi,
-        cout_trahi_coop=payload.cout_trahi_coop,
-        cout_trahi_trahi=payload.cout_trahi_trahi,
-        date_creation=date.today(),
-    )
-
-    db.add(tournament)
-    db.commit()
-    db.refresh(tournament)
 
     tournoi = TournoiMoteur.create_tournoi(payload.nb_iterations,
                             payload.cout_coop_coop,
@@ -69,6 +57,6 @@ def launch_tournament(payload: TournamentLaunchCreate, db: Session = Depends(get
     tournoi.execute()
 
     return {
-        "id_tournoi": tournament.id_tournoi,
+        "id_tournoi": tournoi.id_tournoi,
         "nom_tournoi": f"Tournoi - {len(payload.strategie_ids)} strategies",
     }
