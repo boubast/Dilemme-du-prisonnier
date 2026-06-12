@@ -1,43 +1,75 @@
 import type { Strategie } from "@/type"
-import { MOCK_STRATEGIES } from "@/mock/mocks"
+import { mapStrategieDTOToStrategie, type StrategieDTO } from "@/dto/dtos"
 
-/**
- * Récupère toutes les stratégies disponibles depuis le backend.
- * TODO: remplacer par un vrai appel HTTP vers l'API REST.
- */
+const API_URL =
+  (import.meta.env.VITE_API_URL || "http://localhost:8000") +
+  (import.meta.env.VITE_API_PREFIX || "/api/v1")
+
 export async function fetchStrategies(): Promise<Strategie[]> {
-  // Simulation d'une latence réseau
-  await new Promise((r) => setTimeout(r, 0))
-  return MOCK_STRATEGIES
+  try {
+    const response = await fetch(`${API_URL}/strategy`)
+
+    if (!response.ok) {
+      throw new Error("Erreur lors de la récupération des stratégies")
+    }
+
+    const data: StrategieDTO[] = await response.json()
+
+    return data.map(mapStrategieDTOToStrategie)
+  } catch (error) {
+    console.error("Erreur fetchStrategies:", error)
+    throw error
+  }
 }
 
-/**
- * Récupère une stratégie par son identifiant.
- * TODO: GET /api/strategies/:id
- */
 export async function fetchStrategyById(
   id: string
 ): Promise<Strategie | undefined> {
-  await new Promise((r) => setTimeout(r, 0))
-  return MOCK_STRATEGIES.find((s) => s.id === id)
+  try {
+    const response = await fetch(`${API_URL}/strategy/${id}`)
+
+    if (response.status === 404) {
+      return undefined
+    }
+
+    if (!response.ok) {
+      throw new Error("Erreur lors de la récupération de la stratégie")
+    }
+
+    const data: StrategieDTO = await response.json()
+    return mapStrategieDTOToStrategie(data)
+  } catch (error) {
+    console.error("Erreur fetchStrategyById:", error)
+    throw error
+  }
 }
 
-/**
- * Crée une nouvelle stratégie (simulé).
- */
 export async function createStrategy(
   strategy: Omit<Strategie, "id">
 ): Promise<Strategie> {
-  await new Promise((r) => setTimeout(r, 0))
-  const nextId = String(
-    Math.max(...MOCK_STRATEGIES.map((s) => parseInt(s.id) || 0), 0) + 1
-  )
-  const newStrategy: Strategie = {
-    ...strategy,
-    id: nextId,
+  try {
+    const response = await fetch(`${API_URL}/strategy`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        nom: strategy.nom,
+        explication: strategy.explication,
+        script_rhai: strategy.script_rhai,
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error("Erreur lors de la création de la stratégie")
+    }
+
+    const data: StrategieDTO = await response.json()
+    return mapStrategieDTOToStrategie(data)
+  } catch (error) {
+    console.error("Erreur createStrategy:", error)
+    throw error
   }
-  MOCK_STRATEGIES.push(newStrategy)
-  return newStrategy
 }
 
 /**
@@ -47,26 +79,45 @@ export async function updateStrategy(
   id: string,
   strategy: Omit<Strategie, "id">
 ): Promise<Strategie> {
-  await new Promise((r) => setTimeout(r, 0))
-  const index = MOCK_STRATEGIES.findIndex((s) => s.id === id)
-  if (index === -1) {
-    throw new Error("Stratégie non trouvée")
+  try {
+    const response = await fetch(`${API_URL}/strategy/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        nom: strategy.nom,
+        explication: strategy.explication,
+        script_rhai: strategy.script_rhai,
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error("Erreur lors de la mise à jour de la stratégie")
+    }
+
+    const data: StrategieDTO = await response.json()
+    return mapStrategieDTOToStrategie(data)
+  } catch (error) {
+    console.error("Erreur updateStrategy:", error)
+    throw error
   }
-  const updatedStrategy: Strategie = {
-    ...strategy,
-    id,
-  }
-  MOCK_STRATEGIES[index] = updatedStrategy
-  return updatedStrategy
 }
 
 /**
  * Supprime une stratégie par son identifiant.
  */
 export async function deleteStrategy(id: string): Promise<void> {
-  await new Promise((r) => setTimeout(r, 0))
-  const index = MOCK_STRATEGIES.findIndex((s) => s.id === id)
-  if (index !== -1) {
-    MOCK_STRATEGIES.splice(index, 1)
+  try {
+    const response = await fetch(`${API_URL}/strategy/${id}`, {
+      method: "DELETE",
+    })
+
+    if (!response.ok) {
+      throw new Error("Erreur lors de la suppression de la stratégie")
+    }
+  } catch (error) {
+    console.error("Erreur deleteStrategy:", error)
+    throw error
   }
 }
