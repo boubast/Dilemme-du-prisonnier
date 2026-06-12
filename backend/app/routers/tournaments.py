@@ -34,12 +34,15 @@ def get_tournament(tournoi_id: int, db: Session = Depends(get_db)) -> Tournoi:
         )
     )
     tournoi = db.scalars(stmt).first()
+    tournoiStats = TournoiMoteur(tournoi.id_tournoi)
+    tournoiStats.generer_statistiques()
+
     if tournoi is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Tournoi introuvable",
         )
-    return tournoi
+    return tournoiStats
 
 
 @router.post("/launch", status_code=status.HTTP_201_CREATED)
@@ -57,7 +60,7 @@ def launch_tournament(payload: TournamentLaunchCreate, db: Session = Depends(get
     db.commit()
     db.refresh(tournament)
 
-    tournoi = TournoiMoteur(payload.nb_iterations,
+    tournoi = TournoiMoteur.create_tournoi(payload.nb_iterations,
                             payload.cout_coop_coop,
                             payload.cout_coop_trahi,
                             payload.cout_trahi_coop,

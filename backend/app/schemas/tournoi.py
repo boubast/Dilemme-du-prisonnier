@@ -39,6 +39,9 @@ class PartieRead(BaseModel):
     strategie_1: StrategieDetailRead
     strategie_2: StrategieDetailRead
     iterations: list[IterationRead]
+    resultats: dict
+    score_strategie_1: int
+    score_strategie_2: int
 
 
 class ParticipationRead(BaseModel):
@@ -83,6 +86,8 @@ class TournoiDetailRead(BaseModel):
     cout_trahi_coop: int = Field(exclude=True)
     cout_trahi_trahi: int = Field(exclude=True)
     participations: list[ParticipationRead] = Field(exclude=True)
+    resultats:dict #= Field(exclude=True)
+    scores_totaux:dict
 
     @computed_field
     @property
