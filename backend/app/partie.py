@@ -62,8 +62,8 @@ class Partie:
                 # Création de l'itération en BD
                 iteration = Iteration(id_partie=self.id_partie,
                                       numero_iteration=no_iteration+1,
-                                      choix_strategie_1=int(choix_strat1),
-                                      choix_strategie_2=int(choix_strat2))
+                                      choix_strategie_1=choix_strat1 == "true",
+                                      choix_strategie_2=choix_strat2 == "true")
                 db.add(iteration)
 
                 if no_iteration==0: #On en met pas de virgule avant le premier élément des listes
