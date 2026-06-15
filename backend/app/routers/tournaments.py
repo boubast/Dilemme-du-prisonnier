@@ -9,7 +9,6 @@ from app.models.participation import Participation
 from app.models.partie import Partie
 from app.models.tournoi import Tournoi
 from app.schemas.tournoi import TournamentLaunchCreate, TournoiDetailRead, TournoiListRead
-from app.schemas.tournament import TournamentLaunchCreate
 
 from app.tournoi import Tournoi as TournoiMoteur
 

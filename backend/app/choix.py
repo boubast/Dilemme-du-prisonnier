@@ -1,11 +1,12 @@
 import subprocess
 import platform
+from pathlib import Path
 
 # Sélection de l'exécutable en fonction de l'OS
 if platform.system() == "Windows":
-    executable = "./backend/app/rhai_runner/executables/rhai_runner.exe"
+    executable = Path(__file__).parent / "rhai_runner" / "executables" / "rhai_runner.exe"
 else:
-    executable = "./backend/app/rhai_runner/executables/rhai_runner"
+    executable = Path(__file__).parent / "rhai_runner" / "executables" / "rhai_runner"
 
 def choix(script,
           actions_courante,
@@ -18,7 +19,7 @@ def choix(script,
     #Appel de l'exécutable
     result = subprocess.run(
         [
-            executable,
+            str(executable),
             script,
             actions_courante,
             actions_adverse,
