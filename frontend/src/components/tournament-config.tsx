@@ -2,7 +2,12 @@ import { useCallback, useRef, useState } from "react"
 import { Search, X, Play, Cpu, User, Plus } from "lucide-react"
 import type { Couts, TournamentConfig } from "@/type"
 import { useStrategy } from "@/hooks/useStrategy"
-import { DEFAULT_PAYOFFS } from "@/mock/mocks"
+const DEFAULT_PAYOFFS: Couts = {
+  tentation: 5,
+  recompense: 3,
+  punition: 1,
+  dupe: 0,
+}
 import { Button } from "./ui/button"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
