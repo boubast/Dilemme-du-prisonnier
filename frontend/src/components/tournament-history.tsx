@@ -1,10 +1,11 @@
 import type { Tournoi } from "@/type"
 import { cn } from "@/lib/utils"
 import { Badge } from "./ui/badge"
-import { Crown } from "lucide-react"
+import { Crown, LoaderCircle } from "lucide-react"
 
 interface TournamentHistoryProps {
   tournaments: Tournoi[]
+  pendingTournamentId: string | null
   selectedId: string | null
   onSelect: (id: string) => void
   loading: boolean
@@ -12,6 +13,7 @@ interface TournamentHistoryProps {
 
 export default function TournamentHistory({
   tournaments,
+  pendingTournamentId,
   selectedId,
   onSelect,
   loading,
@@ -45,6 +47,7 @@ export default function TournamentHistory({
           tournaments.map((t, index) => {
             const isActive = t.id === selectedId
             const isRecent = index === 0 // Le premier de la liste triée
+            const isPending = t.id === pendingTournamentId
 
             return (
               <button
@@ -69,22 +72,38 @@ export default function TournamentHistory({
                   >
                     {t.nom}
                   </span>
-                  {isRecent && (
+                  {isPending ? (
+                    <Badge
+                      variant="secondary"
+                      className="h-4 shrink-0 rounded-sm border-none bg-primary/10 px-1 py-0 text-[9px] font-semibold tracking-wide text-primary uppercase"
+                    >
+                      En cours
+                    </Badge>
+                  ) : isRecent ? (
                     <Badge
                       variant="secondary"
                       className="h-4 shrink-0 rounded-sm border-none bg-primary/10 px-1 py-0 text-[9px] font-semibold tracking-wide text-primary uppercase"
                     >
                       Récent
                     </Badge>
-                  )}
+                  ) : null}
                 </div>
                 <div className="mt-1 flex items-center gap-2">
                   <p className="text-[10px] leading-none text-muted-foreground">
                     {t.date_creation}
                   </p>
                   <Badge variant={"outline"}>
-                    {" "}
-                    <Crown /> {t.meilleure_strategie}
+                    {isPending ? (
+                      <>
+                        <LoaderCircle className="size-3 animate-spin" />
+                        Calcul...
+                      </>
+                    ) : (
+                      <>
+                        {" "}
+                        <Crown /> {t.meilleure_strategie}
+                      </>
+                    )}
                   </Badge>
                 </div>
               </button>

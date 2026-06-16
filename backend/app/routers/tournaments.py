@@ -1,5 +1,3 @@
-from datetime import date
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
@@ -39,22 +37,26 @@ def get_tournament(tournoi_id: int, db: Session = Depends(get_db)) -> Tournoi:
             )
         )
         tournoi = db.scalars(stmt).first()
-        tournoiStats = TournoiMoteur(tournoi.id_tournoi)
-        tournoiStats.generer_statistiques()
 
         if tournoi is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Tournoi introuvable",
             )
+        tournoiStats = TournoiMoteur(tournoi.id_tournoi)
+        tournoiStats.generer_statistiques()
         return tournoiStats
 
     else :
         return lastTournamentStatistics
 
 
-@router.post("/launch", status_code=status.HTTP_201_CREATED)
-def launch_tournament(payload: TournamentLaunchCreate, db: Session = Depends(get_db)) -> dict[str, int | str]:
+@router.post(
+    "/launch",
+    response_model=TournoiDetailRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def launch_tournament(payload: TournamentLaunchCreate) -> TournoiMoteur:
 
     global lastTournamentStatistics
 
@@ -64,12 +66,10 @@ def launch_tournament(payload: TournamentLaunchCreate, db: Session = Depends(get
                             payload.cout_trahi_coop,
                             payload.cout_trahi_trahi,
                             payload.strategie_ids)
-    tournoi.execute()
+
+    response = await tournoi.execute_async()
 
     tournoi.generer_statistiques()
     lastTournamentStatistics = tournoi
 
-    return {
-        "id_tournoi": tournoi.id_tournoi,
-        "nom_tournoi": f"Tournoi - {len(payload.strategie_ids)} strategies",
-    }
+    return response

@@ -1,7 +1,10 @@
-from wasmtime import Store,Module,Instance,Linker,Engine
-from wasmtime import WasiConfig
-from threading import Lock, Thread
+import os
+import tempfile
 from pathlib import Path
+from threading import Lock
+
+from wasmtime import Store, Module, Linker, Engine
+from wasmtime import WasiConfig
 
 # Classe pour la gestion Singleton Multithread
 class SingletonMeta(type):
@@ -26,9 +29,6 @@ class MoteurChoix(metaclass=SingletonMeta):
         
         self.module = Module.from_file(self.engine,Path(__file__).parent / "rhai_runner" / "executables" / "rhai_runner.wasm")
 
-        self.linker = Linker(self.engine)
-        self.linker.define_wasi()
-
     def choix(self,script,
             actions_courante,
             actions_adverse,
@@ -39,32 +39,42 @@ class MoteurChoix(metaclass=SingletonMeta):
             ):
         #Configuration et exécution d'un script
 
-        self.store = Store(self.engine)
+        store = Store(self.engine)
 
-        self.wasi = WasiConfig()
-        self.wasi.inherit_stdout()
-        self.wasi.inherit_stderr()
-        self.wasi.stdout_file = "stdout.txt"
-        
-        self.wasi.argv = ["",script,
+        wasi = WasiConfig()
+        wasi.inherit_stdout()
+        wasi.inherit_stderr()
+
+        output_file = tempfile.NamedTemporaryFile(delete=False)
+        output_file.close()
+
+        try:
+            wasi.stdout_file = output_file.name
+
+            wasi.argv = ["",script,
                 actions_courante,
                 actions_adverse,
                 cout_trahison,
                 cout_cooperation,
                 cout_trahison_cooperation,
                 cout_cooperation_trahison]
-        self.store.set_wasi(self.wasi)
+            store.set_wasi(wasi)
 
-        instance = self.linker.instantiate(self.store, self.module)
+            linker = Linker(self.engine)
+            linker.define_wasi()
 
-        self.start = instance.exports(self.store)["_start"]
+            instance = linker.instantiate(store, self.module)
 
-        self.start(self.store)
+            start = instance.exports(store)["_start"]
+
+            start(store)
         
-        result = ""
-        with open("stdout.txt", encoding="utf-8") as f:
-            result = f.read().strip()
+            result = ""
+            with open(output_file.name, encoding="utf-8") as f:
+                result = f.read().strip()
         
-        return result
+            return result
+        finally:
+            os.unlink(output_file.name)
 
         #TODO : Gestion des erreurs

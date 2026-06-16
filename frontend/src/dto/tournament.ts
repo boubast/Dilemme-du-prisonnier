@@ -30,7 +30,7 @@ export interface TournoiDTO {
   id_tournoi: number
   nom: string
   date_creation: string
-  meilleure_strategie: string
+  meilleure_strategie: string | null
   nb_iterations: number
   couts: {
     tentation: number
@@ -48,7 +48,7 @@ export interface TournoiListItemDTO {
   id_tournoi: number
   nom: string
   date_creation: string
-  meilleure_strategie: string
+  meilleure_strategie: string | null
 }
 
 export function mapStrategieDTOToStrategie(dto: StrategieDTO): Strategie {
@@ -136,7 +136,7 @@ export function mapTournoiDTOToTournoi(dto: TournoiDTO): Tournoi {
     nom: dto.nom,
     nb_iterations: dto.nb_iterations,
     date_creation: dto.date_creation,
-    meilleure_strategie: dto.meilleure_strategie,
+    meilleure_strategie: dto.meilleure_strategie || "",
     couts: dto.couts,
     strategies,
     parties,
