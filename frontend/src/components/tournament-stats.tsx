@@ -45,9 +45,6 @@ export default function TournamentStats({
     )
   }
 
-  const isHuman = tournament.nom.toLowerCase().includes("homme")
-  const modeLabel = isHuman ? "Homme vs Machine" : "Machine vs Machine"
-
   return (
     <section className="flex min-h-120 w-2/3 flex-col gap-4 rounded-xl border border-border bg-card p-5">
       {/* En-tête */}
@@ -63,12 +60,6 @@ export default function TournamentStats({
             className="h-5 border-none bg-muted px-2 text-[10px] font-medium text-muted-foreground"
           >
             {tournament.nb_iterations} itérations
-          </Badge>
-          <Badge
-            variant="secondary"
-            className="h-5 border-none bg-muted px-2 text-[10px] font-medium text-muted-foreground"
-          >
-            {modeLabel}
           </Badge>
           <Badge
             variant="secondary"

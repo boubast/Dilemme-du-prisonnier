@@ -1,5 +1,4 @@
 import { NavLink, Outlet } from "react-router-dom"
-import { cn } from "@/lib/utils"
 
 export function MainLayout() {
   return (
@@ -14,36 +13,6 @@ export function MainLayout() {
           >
             Dilemme du Prisonnier
           </NavLink>
-
-          {/* Navigation */}
-          <nav className="flex items-center gap-6 text-sm font-medium">
-            <NavLink
-              to="/"
-              className={({ isActive }) =>
-                cn(
-                  "transition-colors hover:text-primary",
-                  isActive
-                    ? "font-semibold text-primary"
-                    : "text-muted-foreground"
-                )
-              }
-            >
-              Tournoi
-            </NavLink>
-            <NavLink
-              to="/strategy"
-              className={({ isActive }) =>
-                cn(
-                  "transition-colors hover:text-primary",
-                  isActive
-                    ? "font-semibold text-primary"
-                    : "text-muted-foreground"
-                )
-              }
-            >
-              Stratégies
-            </NavLink>
-          </nav>
         </div>
       </header>
 
