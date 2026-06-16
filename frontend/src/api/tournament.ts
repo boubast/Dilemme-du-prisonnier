@@ -58,7 +58,7 @@ export async function fetchTournamentById(
  */
 export async function createTournament(
   config: TournamentConfig
-): Promise<Partial<Tournoi>> {
+): Promise<Tournoi> {
   try {
     const body = {
       strategie_ids: config.strategies_ids.map(Number),
@@ -81,13 +81,9 @@ export async function createTournament(
       throw new Error("Erreur lors du lancement du tournoi")
     }
 
-    const result: { id_tournoi: number; nom_tournoi: string } =
-      await response.json()
+    const data : TournoiDTO = await response.json()
+    return mapTournoiDTOToTournoi(data)
 
-    return {
-      id: result.id_tournoi.toString(),
-      nom: result.nom_tournoi,
-    }
   } catch (error) {
     console.error("createTournament error:", error)
     throw error

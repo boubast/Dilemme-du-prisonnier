@@ -1,3 +1,5 @@
+import { LoaderCircle } from "lucide-react"
+
 import { useTournament } from "@/hooks/useTournament"
 import { Badge } from "./ui/badge"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs"
@@ -7,13 +9,32 @@ import TournamentInsightsTab from "./tournament-insights-tab"
 
 interface TournamentStatsProps {
   tournamentId: string | null
+  creating?: boolean
 }
 
 export default function TournamentStats({
   tournamentId,
+  creating = false,
 }: TournamentStatsProps) {
   const { activeTournament: tournament, activeLoading: loading } =
     useTournament(tournamentId, false)
+
+  if (creating) {
+    return (
+      <section className="flex min-h-120 w-2/3 flex-col items-center gap-3 rounded-xl border border-border bg-card p-8 pt-12 text-center">
+        <LoaderCircle className="size-6 animate-spin text-primary" />
+        <div>
+          <p className="text-sm font-medium text-foreground">
+            Calcul du tournoi en cours...
+          </p>
+          <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+            Les statistiques s'afficheront dès que toutes les parties seront
+            terminées.
+          </p>
+        </div>
+      </section>
+    )
+  }
 
   if (loading) {
     return (
