@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react"
-import { Search, X, Play, Cpu, User, Plus } from "lucide-react"
+import { Search, X, Play, Plus } from "lucide-react"
 import type { Couts, TournamentConfig } from "@/type"
 import { useStrategy } from "@/hooks/useStrategy"
 import { DEFAULT_PAYOFFS } from "@/mock/mocks"
@@ -30,7 +30,6 @@ export default function TournamentConfig({
   } = useStrategy(true)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [search, setSearch] = useState("")
-  const [gameMode, setGameMode] = useState<"machine" | "homme">("machine")
   const [nbIterations, setNbIterations] = useState(200)
   const [payoffs, setPayoffs] = useState<Couts>(DEFAULT_PAYOFFS)
   const [isLoading, setIsLoading] = useState(false)
@@ -209,46 +208,6 @@ export default function TournamentConfig({
         {/* ── Paramètres ── */}
         <section className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4">
           <h2 className="text-sm font-semibold text-foreground">Paramètres</h2>
-
-          {/* Mode de jeu */}
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-medium text-foreground">
-              Mode de jeu
-            </label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setGameMode("machine")}
-                className={cn(
-                  "flex h-8 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md border text-xs font-medium transition-all",
-                  gameMode === "machine"
-                    ? "border-secondary bg-secondary text-secondary-foreground"
-                    : "border-input bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
-                )}
-              >
-                <Cpu className="size-3.5" />
-                Machine
-              </button>
-              <button
-                type="button"
-                onClick={() => setGameMode("homme")}
-                className={cn(
-                  "flex h-8 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md border text-xs font-medium transition-all",
-                  gameMode === "homme"
-                    ? "border-secondary bg-secondary text-secondary-foreground"
-                    : "border-input bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
-                )}
-              >
-                <User className="size-3.5" />
-                Homme
-              </button>
-            </div>
-            <p className="text-[11px] text-muted-foreground">
-              {gameMode === "machine"
-                ? "Toutes les stratégies s'affrontent automatiquement."
-                : "Vous contrôlez manuellement l'une des stratégies."}
-            </p>
-          </div>
 
           {/* Nombre d'itérations */}
           <div className="flex flex-col gap-1.5">
