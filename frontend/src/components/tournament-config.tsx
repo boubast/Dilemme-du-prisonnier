@@ -20,6 +20,7 @@ import { PayoffMatrix } from "./payoff-matrix"
 import { Separator } from "./ui/separator"
 import { StrategyDialog } from "./strategy-dialog"
 import { createTournament } from "@/api/tournament"
+import { TOAST_STYLE } from "@/constants"
 
 interface TournamentConfigProps {
   onTournamentCreated: () => void
@@ -77,11 +78,14 @@ export default function TournamentConfig({
         try {
           await removeStrategy(id)
           setSelectedIds((prev) => prev.filter((sid) => sid !== id))
-          toast.success("Stratégie supprimée avec succès.")
+          toast.success("Stratégie supprimée avec succès.", {
+            style: TOAST_STYLE.success,
+          })
         } catch (e: unknown) {
           const err = e as Error
           toast.error(
-            "Erreur lors de la suppression de la stratégie : " + err.message
+            "Erreur lors de la suppression de la stratégie : " + err.message,
+            { style: TOAST_STYLE.error }
           )
         }
       }
@@ -108,11 +112,15 @@ export default function TournamentConfig({
     setIsLoading(true)
     try {
       await createTournament(config)
-      toast.success("Tournoi lancé avec succès !")
+      toast.success("Tournoi lancé avec succès !", {
+        style: TOAST_STYLE.success,
+      })
       onTournamentCreated()
     } catch (e: unknown) {
       const err = e as Error
-      toast.error("Erreur lors du lancement du tournoi : " + err.message)
+      toast.error("Erreur lors du lancement du tournoi : " + err.message, {
+        style: TOAST_STYLE.error,
+      })
     } finally {
       setIsLoading(false)
     }
