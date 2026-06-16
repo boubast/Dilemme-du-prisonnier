@@ -30,19 +30,6 @@ export function MainLayout() {
             >
               Tournoi
             </NavLink>
-            <NavLink
-              to="/strategy"
-              className={({ isActive }) =>
-                cn(
-                  "transition-colors hover:text-primary",
-                  isActive
-                    ? "font-semibold text-primary"
-                    : "text-muted-foreground"
-                )
-              }
-            >
-              Stratégies
-            </NavLink>
           </nav>
         </div>
       </header>
