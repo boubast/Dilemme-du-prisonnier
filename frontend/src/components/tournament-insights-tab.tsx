@@ -16,15 +16,16 @@ const getScoreStrategies = (
   coup_s2: boolean,
   couts: Tournoi["couts"]
 ) => {
+  if (!coup_s1) {
+    return {
+      scoreS1: coup_s2 ? couts.dupe : couts.recompense,
+      scoreS2: coup_s2 ? couts.tentation : couts.recompense,
+    }
+  }
+
   return {
-    scoreS1: coup_s1 && coup_s2
-      ? couts.recompense : coup_s1 && !coup_s2
-      ? couts.dupe : !coup_s1 && coup_s2
-      ? couts.tentation : couts.punition,
-    scoreS2: coup_s1 && coup_s2
-      ? couts.recompense : coup_s1 && !coup_s2
-      ? couts.tentation : !coup_s1 && coup_s2
-      ? couts.dupe : couts.punition,
+    scoreS1: coup_s2 ? couts.punition : couts.tentation,
+    scoreS2: coup_s2 ? couts.punition : couts.dupe,
   }
 }
 
@@ -40,7 +41,7 @@ const getScoreForIteration = (
 
   const coup_s1 = iter.coup_strategie1
   const coup_s2 = iter.coup_strategie2
-  const {scoreS1, scoreS2} = getScoreStrategies(coup_s1, coup_s2, couts)
+  const { scoreS1, scoreS2 } = getScoreStrategies(coup_s1, coup_s2, couts)
 
   return {
     [strategie1.id]: scoreS1,
@@ -48,7 +49,9 @@ const getScoreForIteration = (
   }
 }
 
-const calculateChartData = (tournoi: Tournoi): Array<Record<string, number>> => {
+const calculateChartData = (
+  tournoi: Tournoi
+): Array<Record<string, number>> => {
   const { strategies, parties, nb_iterations, couts } = tournoi
   const runningTotals: Record<string, number> = Object.fromEntries(
     strategies.map((s) => [s.id, 0])
