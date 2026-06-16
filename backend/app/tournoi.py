@@ -44,8 +44,7 @@ class Tournoi:
             self.cout_trahi_coop = tournoiBD.cout_trahi_coop
             self.cout_trahi_trahi = tournoiBD.cout_trahi_trahi
             self.strategie_ids = [participation.id_strategie 
-                                  for participation in db.scalars(select(Participation)
-                                    .where(Participation.id_tournoi == tournoiBD.id_tournoi)).all()]
+                                  for participation in self.participations]
             self.date_creation = tournoiBD.date_creation
             self.id_tournoi = tournoiBD.id_tournoi
 
@@ -89,14 +88,12 @@ class Tournoi:
             
             # Parcourir les parties du tournoi
             for partie in self.parties:
-                iterations = db.scalars(select(Iteration)
-                                        .where(Iteration.id_partie == partie.id_partie)).all()
                 score_strategie_1 = 0
                 score_strategie_2 = 0
                 partie.resultats= {"V1":0,"V2":0,"N":0}
                 
                 # Parcourir les itérations de la partie
-                for iteration in iterations:
+                for iteration in partie.iterations:
                     # Chargement des scores et des Victoire 1 / Victoire 2 / Nul
                     match iteration.choix_strategie_1:
                         case 0:
@@ -172,3 +169,22 @@ class Tournoi:
                         self.cout_coop_coop,
                         self.cout_trahi_coop,
                         self.cout_coop_trahi)
+        
+        db = SessionLocal()
+        try:
+            stmt = (
+                select(TournoiModel)
+                .where(TournoiModel.id_tournoi == self.id_tournoi)
+                .options(
+                    selectinload(TournoiModel.parties).selectinload(PartieModel.iterations),
+                    selectinload(TournoiModel.parties).selectinload(PartieModel.strategie_1),
+                    selectinload(TournoiModel.parties).selectinload(PartieModel.strategie_2),
+                    selectinload(TournoiModel.participations).selectinload(Participation.strategie),
+                )
+            )
+            tournoiBD = db.scalars(stmt).first()
+
+            self.participations = tournoiBD.participations
+            self.parties = tournoiBD.parties
+        finally:
+            db.close()
