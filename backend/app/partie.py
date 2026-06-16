@@ -1,4 +1,4 @@
-from app.choix import choix
+from app.choix import MoteurChoix
 from sqlalchemy.orm import Session
 
 from app.models import Iteration, Strategie
@@ -46,14 +46,16 @@ class Partie:
             actions_strat2_str = "["
             choix_strat1 = ""
             choix_strat2 = ""
+
+            moteurChoix = MoteurChoix() #Exécuteur de code Rhai, en Singleton
             
             for no_iteration in range(nb_iterations):
-                choix_strat1 = choix(script1,actions_strat1_str + "]",actions_strat2_str + "]",
+                choix_strat1 = moteurChoix.choix(script1,actions_strat1_str + "]",actions_strat2_str + "]",
                                             cout_trahi_trahi,
                                             cout_coop_coop,
                                             cout_trahi_coop,
                                             cout_coop_trahi)
-                choix_strat2 = choix(script2,actions_strat2_str + "]",actions_strat1_str + "]",
+                choix_strat2 = moteurChoix.choix(script2,actions_strat2_str + "]",actions_strat1_str + "]",
                                             cout_trahi_trahi,
                                             cout_coop_coop,
                                             cout_trahi_coop,

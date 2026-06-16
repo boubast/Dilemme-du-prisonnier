@@ -229,3 +229,4 @@ yarn-error.log*
 pnpm-debug.log*
 .vite/
 
+stdout.txt
