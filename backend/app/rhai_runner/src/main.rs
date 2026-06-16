@@ -32,13 +32,13 @@ fn main() -> Result<(), Box<EvalAltResult>> {
                         let cout_cooperation = {cout_cooperation};
                         let cout_trahison_cooperation = {cout_trahison_cooperation};
                         let cout_cooperation_trahison = {cout_cooperation_trahison};");
-    let renvoi_choix = ";};print(choix());";
+    let renvoi_choix = ";};choix();";
     let script_complet = format!("{debut_fonction}{init_variables}{script}{renvoi_choix}");
 
     // Exécution du script
     match engine.eval::<rhai::Dynamic>(&script_complet) {
         // Réussite de l'exécution
-        Ok(_result) => {Ok(())},
+        Ok(result) => {println!("{result}");Ok(())},
         // Erreur lors de l'exécution
         Err(err) => {
             print!("Erreur: {err}");
