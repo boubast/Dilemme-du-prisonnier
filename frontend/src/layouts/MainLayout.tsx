@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export function MainLayout() {
   return (
@@ -13,6 +14,7 @@ export function MainLayout() {
           >
             Dilemme du Prisonnier
           </NavLink>
+          <ThemeToggle />
         </div>
       </header>
 

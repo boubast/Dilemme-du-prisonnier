@@ -5,6 +5,7 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import type { FormEvent } from "react"
 import { useStrategy } from "@/hooks/useStrategy"
+import { StrategyCodeEditor } from "@/components/strategy-code-editor"
 
 interface HelpBlock {
   title: string
@@ -14,37 +15,38 @@ interface HelpBlock {
 
 const HELP_BLOCKS: HelpBlock[] = [
   {
-    title: "Premier tour",
-    description: "Agir différemment au tout premier coup",
-    snippet: `if history.is_empty() {
-    return "C";
-}`,
+    title: "Always cooperate",
+    description: "Always cooperate",
+    snippet: `return Choice::COOPERATE;`,
   },
   {
-    title: "Dernier coup adverse",
-    description: "Lire le dernier coup de l'adversaire",
-    snippet: `let last = history[history.len() - 1];
-if last == "C" { "C" } else { "D" }`,
+    title: "Always betray",
+    description: "Always betray",
+    snippet: `return Choice::BETRAY;`,
   },
   {
-    title: "A déjà trahi ?",
-    description: "Vérifier si l'adversaire a trahi",
-    snippet: `let betrayed = history.contains("D");
-if betrayed { "D" } else { "C" }`,
+    title: "Random",
+    description: "Random",
+    snippet: `if rand(0,1)==0{return Choice::COOPERATE;} 
+else{return Choice::BETRAY;};`,
   },
   {
-    title: "Aléatoire",
-    description: "Choisir au hasard",
-    snippet: `if rand() > 0.5 { "C" } else { "D" }`,
+    title: "Tit for tat",
+    description:
+      "First cooperate, then subsequently replicate an opponent's previous action",
+    snippet: `if len(derniers_coups_strategie_adverse)==0{return Choice::COOPERATE;} 
+else{
+    if derniers_coups_strategie_adverse[-1]==Choice::COOPERATE.value{return Choice::COOPERATE;}
+    else{return Choice::BETRAY;}
+};`,
   },
   {
-    title: "Compter les coopérations",
-    description: "Boucler sur l'historique",
-    snippet: `let coops = 0;
-for m in history {
-    if m == "C" { coops += 1; }
-}
-if coops > history.len() / 2 { "C" } else { "D" }`,
+    title: "Grudger",
+    description: "Cooperate, but always betray if an opponent betray",
+    snippet: `for i in derniers_coups_strategie_adverse{
+    if i==Choice::BETRAY.value{return Choice::BETRAY;}
+} 
+return Choice::COOPERATE;`,
   },
 ]
 
@@ -180,19 +182,10 @@ export function StrategyDialog({
                     Script Rhai
                   </label>
                 </div>
-                <textarea
+                <StrategyCodeEditor
                   id="strategy-code"
                   value={scriptRhai}
-                  onChange={(e) => setScriptRhai(e.target.value)}
-                  required
-                  spellCheck={false}
-                  className={cn(
-                    "min-h-50 w-full flex-1 rounded-md border border-input bg-muted/30",
-                    "resize-none px-3 py-2.5 font-mono text-sm leading-relaxed",
-                    "focus:border-ring focus:ring-2 focus:ring-ring/50 focus:outline-none",
-                    "transition-colors"
-                  )}
-                  style={{ height: "100%" }}
+                  onChange={setScriptRhai}
                 />
                 <p className="text-[11px] text-muted-foreground">
                   La fonction doit retourner{" "}
