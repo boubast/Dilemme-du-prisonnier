@@ -58,7 +58,7 @@ export async function fetchTournamentById(
  */
 export async function createTournament(
   config: TournamentConfig
-): Promise<Tournoi> {
+): Promise<Partial<Tournoi>> {
   try {
     const body = {
       strategie_ids: config.strategies_ids.map(Number),
@@ -84,13 +84,10 @@ export async function createTournament(
     const result: { id_tournoi: number; nom_tournoi: string } =
       await response.json()
 
-    // Récupère les détails du tournoi créé pour renvoyer l'objet complet
-    const newTournoi = await fetchTournamentById(String(result.id_tournoi))
-    if (!newTournoi) {
-      throw new Error("Le tournoi créé n'a pas pu être récupéré depuis l'API")
+    return {
+      id: result.id_tournoi.toString(),
+      nom: result.nom_tournoi,
     }
-
-    return newTournoi
   } catch (error) {
     console.error("createTournament error:", error)
     throw error
