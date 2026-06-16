@@ -14,17 +14,17 @@ enum Choice {
 fn main() -> Result<(), Box<EvalAltResult>> {
 
     // Script Rhai à exécuter
-    let script = env::args().nth(1).expect("script manquant");
+    let script = env::args().nth(1).expect("script is missing");
 
     // Variables outils : état de la partie
-    let derniers_coups_strategie_courante = env::args().nth(2).expect("derniers coups 1 manquant");
-    let derniers_coups_strategie_adverse = env::args().nth(3).expect("derniers coups 2 manquant");
+    let last_current_strokes = env::args().nth(2).expect("last current strokes are missing");
+    let last_opposing_stokes = env::args().nth(3).expect("last opposing strokes are missing");
 
     // Variables outils : coûts des interactions
-    let cout_trahison = env::args().nth(4).expect("coût 1 manquant");
-    let cout_cooperation = env::args().nth(5).expect("coût 2 manquant");
-    let cout_trahison_cooperation = env::args().nth(6).expect("coût 3 manquant");
-    let cout_cooperation_trahison = env::args().nth(7).expect("coût 4 manquant");
+    let cost_betray = env::args().nth(4).expect("cost 1 is missing");
+    let cost_cooperate = env::args().nth(5).expect("cost 2 is missing");
+    let cost_betray_cooperate = env::args().nth(6).expect("cost 3 is missing");
+    let cost_cooperate_betray = env::args().nth(7).expect("cost 4 is missing");
 
     let mut engine = Engine::new();
 
@@ -38,12 +38,12 @@ fn main() -> Result<(), Box<EvalAltResult>> {
     // Ajout des variables outils au script
     let debut_fonction = "fn choix(){";
     let init_variables = format!("
-                        let derniers_coups_strategie_courante = {derniers_coups_strategie_courante};
-                        let derniers_coups_strategie_adverse = {derniers_coups_strategie_adverse};
-                        let cout_trahison = {cout_trahison};
-                        let cout_cooperation = {cout_cooperation};
-                        let cout_trahison_cooperation = {cout_trahison_cooperation};
-                        let cout_cooperation_trahison = {cout_cooperation_trahison};
+                        let last_current_strokes = {last_current_strokes};
+                        let last_opposing_stokes = {last_opposing_stokes};
+                        let cost_betray = {cost_betray};
+                        let cost_cooperate = {cost_cooperate};
+                        let cost_betray_cooperate = {cost_betray_cooperate};
+                        let cost_cooperate_betray = {cost_cooperate_betray};
                         ");
     let renvoi_choix = "
                         ;};

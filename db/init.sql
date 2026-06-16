@@ -72,43 +72,43 @@ VALUES ('Random', 'Random', 'if rand(0,1)==0{return Choice::COOPERATE;}
 else{return Choice::BETRAY;};');
 
 INSERT INTO strategie (nom, explication, script_rhai)
-VALUES ('Tit for tat', 'First cooperate, then subsequently replicate an opponent''s previous action', 'if len(derniers_coups_strategie_adverse)==0{return Choice::COOPERATE;} 
+VALUES ('Tit for tat', 'First cooperate, then subsequently replicate an opponent''s previous action', 'if len(last_opposing_stokes)==0{return Choice::COOPERATE;} 
 else{
-    if derniers_coups_strategie_adverse[-1]==Choice::COOPERATE.value{return Choice::COOPERATE;}
+    if last_opposing_stokes[-1]==Choice::COOPERATE.value{return Choice::COOPERATE;}
     else{return Choice::BETRAY;}
 };');
 
 INSERT INTO strategie (nom, explication, script_rhai)
-VALUES ('Grudger', 'Cooperate, but always betray if an opponent betray', 'for i in derniers_coups_strategie_adverse{
+VALUES ('Grudger', 'Cooperate, but always betray if an opponent betray', 'for i in last_opposing_stokes{
     if i==Choice::BETRAY.value{return Choice::BETRAY;}
 } 
 return Choice::COOPERATE;');
 
 INSERT INTO strategie (nom, explication, script_rhai)
-VALUES ('Hesitant', 'Alternate cooperate and betray', 'if len(derniers_coups_strategie_adverse)%2==0{return Choice::COOPERATE;}
+VALUES ('Hesitant', 'Alternate cooperate and betray', 'if len(last_opposing_stokes)%2==0{return Choice::COOPERATE;}
 else{return Choice::BETRAY;};');
 
 INSERT INTO strategie (nom, explication, script_rhai)
-VALUES ('Tideman & Chieruzzi', 'First cooperate, then subsequently replicate an opponent''s previous action but betray only if the opponent betray two times', 'if len(derniers_coups_strategie_adverse)<3{return Choice::COOPERATE;}
+VALUES ('Tideman & Chieruzzi', 'First cooperate, then subsequently replicate an opponent''s previous action but betray only if the opponent betray two times', 'if len(last_opposing_stokes)<3{return Choice::COOPERATE;}
 else{
-    if derniers_coups_strategie_adverse[-1]==0{return Choice::COOPERATE;}
+    if last_opposing_stokes[-1]==0{return Choice::COOPERATE;}
     else{
-        if derniers_coups_strategie_adverse[-2]==Choice::COOPERATE.value{return Choice::COOPERATE;}
+        if last_opposing_stokes[-2]==Choice::COOPERATE.value{return Choice::COOPERATE;}
         else{return Choice::BETRAY;}
     }
 };');
 
 INSERT INTO strategie (nom, explication, script_rhai)
-VALUES ('Grofman', 'Start by cooperate, then use the last three turns', 'if len(derniers_coups_strategie_adverse)<4{return Choice::COOPERATE;} 
+VALUES ('Grofman', 'Start by cooperate, then use the last three turns', 'if len(last_opposing_stokes)<4{return Choice::COOPERATE;} 
 else{
-    if derniers_coups_strategie_adverse[-1] + derniers_coups_strategie_adverse[-2] + derniers_coups_strategie_adverse[-3]<2{return Choice::COOPERATE;}
+    if last_opposing_stokes[-1] + last_opposing_stokes[-2] + last_opposing_stokes[-3]<2{return Choice::COOPERATE;}
     else{return Choice::BETRAY;}
 };');
 
 INSERT INTO strategie (nom, explication, script_rhai)
 VALUES ('Shubik', 'Cooperate, but betray twenty times if an opponent betray', 'let punition_restante = 0;
-for i in 0..len(derniers_coups_strategie_adverse) {
-    if derniers_coups_strategie_adverse[i] == Choice::BETRAY.value {punition_restante = 20;}
+for i in 0..len(last_opposing_stokes) {
+    if last_opposing_stokes[i] == Choice::BETRAY.value {punition_restante = 20;}
     if punition_restante > 0 {punition_restante -= 1;}
 }
 if punition_restante > 0 {return Choice::BETRAY;}
@@ -116,42 +116,42 @@ return Choice::COOPERATE;');
 
 INSERT INTO strategie (nom, explication, script_rhai)
 VALUES ('Davis', 'Cooperate, but betray ten times if an opponent betray, and cooperate back only if no betray happenend since the previous one', 'let debut_punition = -1;
-for i in 0..len(derniers_coups_strategie_adverse) {
-    if derniers_coups_strategie_adverse[i] == Choice::BETRAY.value {debut_punition = i;}
+for i in 0..len(last_opposing_stokes) {
+    if last_opposing_stokes[i] == Choice::BETRAY.value {debut_punition = i;}
 }
 if debut_punition >= 0 {
-    let tours_depuis = len(derniers_coups_strategie_adverse) - debut_punition - 1;
+    let tours_depuis = len(last_opposing_stokes) - debut_punition - 1;
     if tours_depuis < 10 {return Choice::BETRAY;}
 }
 return Choice::COOPERATE;');
 
 INSERT INTO strategie (nom, explication, script_rhai)
-VALUES ('SteinRapoport', 'First cooperate, then subsequently replicate an opponent''s previous action, with a probability to cooperate', 'if len(derniers_coups_strategie_adverse)==0{return Choice::COOPERATE;}
+VALUES ('SteinRapoport', 'First cooperate, then subsequently replicate an opponent''s previous action, with a probability to cooperate', 'if len(last_opposing_stokes)==0{return Choice::COOPERATE;}
 else{
     if rand(1,100)<10{return Choice::COOPERATE;}
     else {
-        if derniers_coups_strategie_adverse[-1]==Choice::COOPERATE.value{return Choice::COOPERATE;}
+        if last_opposing_stokes[-1]==Choice::COOPERATE.value{return Choice::COOPERATE;}
         else{return Choice::BETRAY;}
     }
 };');
 
 INSERT INTO strategie (nom, explication, script_rhai)
-VALUES ('Joss', 'First cooperate, then subsequently replicate an opponent''s previous action, with a probability to betray', 'if len(derniers_coups_strategie_adverse)==0{return Choice::COOPERATE;}
+VALUES ('Joss', 'First cooperate, then subsequently replicate an opponent''s previous action, with a probability to betray', 'if len(last_opposing_stokes)==0{return Choice::COOPERATE;}
 else{
     if rand(1,100)<10{return Choice::BETRAY;}
     else {
-        if derniers_coups_strategie_adverse[-1]==Choice::COOPERATE.value{return Choice::COOPERATE;}
+        if last_opposing_stokes[-1]==Choice::COOPERATE.value{return Choice::COOPERATE;}
         else{return Choice::BETRAY;}
     }
 };');
 
 INSERT INTO strategie (nom, explication, script_rhai)
-VALUES ('Feld', 'First cooperate, then subsequently replicate an opponent''s previous action, but always betray two times', 'if len(derniers_coups_strategie_adverse)==0{return Choice::COOPERATE;}
+VALUES ('Feld', 'First cooperate, then subsequently replicate an opponent''s previous action, but always betray two times', 'if len(last_opposing_stokes)==0{return Choice::COOPERATE;}
 else{
-    if derniers_coups_strategie_adverse[-1]==1 {return Choice::BETRAY;} 
+    if last_opposing_stokes[-1]==1 {return Choice::BETRAY;} 
     else{
-        if len(derniers_coups_strategie_adverse)>1 {
-            if derniers_coups_strategie_adverse[-2]==1{return Choice::BETRAY;}
+        if len(last_opposing_stokes)>1 {
+            if last_opposing_stokes[-2]==1{return Choice::BETRAY;}
         }
     }
 }
