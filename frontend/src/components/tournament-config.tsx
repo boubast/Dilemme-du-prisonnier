@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Search, X, Play, Plus } from "lucide-react"
 import type { Couts, Tournoi, TournamentConfig } from "@/type"
 import { useStrategy } from "@/hooks/useStrategy"
@@ -45,6 +45,8 @@ export default function TournamentConfig({
   const [payoffs, setPayoffs] = useState<Couts>(DEFAULT_PAYOFFS)
   const [isLoading, setIsLoading] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
+  const settingsRef = useRef<HTMLDivElement>(null)
+  const [settingsHeight, setSettingsHeight] = useState<number | null>(null)
 
   // Dialog State
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -110,6 +112,26 @@ export default function TournamentConfig({
     setPayoffs((prev) => ({ ...prev, [key]: value }))
   }
 
+  useEffect(() => {
+    const settingsElement = settingsRef.current
+    if (!settingsElement) {
+      return undefined
+    }
+
+    const updateSettingsHeight = () => {
+      setSettingsHeight(settingsElement.offsetHeight)
+    }
+
+    updateSettingsHeight()
+
+    const observer = new ResizeObserver(updateSettingsHeight)
+    observer.observe(settingsElement)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [])
+
   async function handleSubmit() {
     if (selectedIds.length < 2) return
     const config: TournamentConfig = {
@@ -153,9 +175,16 @@ export default function TournamentConfig({
   }
 
   return (
-    <div className="flex gap-5">
+    <div className="flex items-start gap-5">
       {/* ── Sélection des stratégies ── */}
-      <section className="flex w-2/3 flex-col gap-3 rounded-xl border border-border bg-card p-4">
+      <section
+        className="flex min-h-0 w-2/3 flex-col gap-3 overflow-hidden rounded-xl border border-border bg-card p-4"
+        style={
+          settingsHeight
+            ? { height: settingsHeight, maxHeight: settingsHeight }
+            : undefined
+        }
+      >
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -219,16 +248,18 @@ export default function TournamentConfig({
 
         {/* Liste des stratégies disponibles */}
         {availableStrategies.length > 0 ? (
-          <div className="grid grid-cols-2 gap-2">
-            {availableStrategies.map((s) => (
-              <StrategyCard
-                key={s.id}
-                strategie={s}
-                onSelect={handleSelect}
-                onEdit={handleEditStrategy}
-                onDelete={handleDeleteStrategy}
-              />
-            ))}
+          <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+            <div className="grid grid-cols-2 gap-2">
+              {availableStrategies.map((s) => (
+                <StrategyCard
+                  key={s.id}
+                  strategie={s}
+                  onSelect={handleSelect}
+                  onEdit={handleEditStrategy}
+                  onDelete={handleDeleteStrategy}
+                />
+              ))}
+            </div>
           </div>
         ) : (
           <p className="py-4 text-center text-xs text-muted-foreground">
@@ -243,7 +274,7 @@ export default function TournamentConfig({
         </div>
       </section>
 
-      <div className="flex w-1/3 flex-col gap-5">
+      <div ref={settingsRef} className="flex w-1/3 flex-col gap-5">
         {/* ── Paramètres ── */}
         <section className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4">
           <h2 className="text-sm font-semibold text-foreground">Paramètres</h2>

@@ -73,6 +73,25 @@ export async function createStrategy(
   }
 }
 
+export async function validateStrategySyntax(scriptRhai: string): Promise<string | null> {
+  const response = await fetch(`${API_URL}/strategy/validate-syntax`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      script_rhai: scriptRhai,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error("Erreur lors de la validation syntaxique")
+  }
+
+  const data: { valid: boolean; error: string | null } = await response.json()
+  return data.valid ? null : data.error || "Script Rhai invalide."
+}
+
 /**
  * Met à jour une stratégie existante.
  */
