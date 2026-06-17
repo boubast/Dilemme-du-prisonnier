@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react"
 import { Search, X, Play, Plus } from "lucide-react"
-import type { Couts, TournamentConfig } from "@/type"
+import type { Couts, Tournoi, TournamentConfig } from "@/type"
 import { useStrategy } from "@/hooks/useStrategy"
 const DEFAULT_PAYOFFS: Couts = {
   tentation: 5,
@@ -20,13 +20,18 @@ import { PayoffMatrix } from "./payoff-matrix"
 import { Separator } from "./ui/separator"
 import { StrategyDialog } from "./strategy-dialog"
 import { createTournament } from "@/api/tournament"
+import { TOAST_STYLE } from "@/constants"
 
 interface TournamentConfigProps {
-  onTournamentCreated: () => void
+  onTournamentCreated: (tournoi: Tournoi) => void | Promise<void>
+  onTournamentCreating: (tournoi: Tournoi) => void
+  onTournamentCreationFailed: () => void
 }
 
 export default function TournamentConfig({
   onTournamentCreated,
+  onTournamentCreating,
+  onTournamentCreationFailed,
 }: TournamentConfigProps) {
   const {
     strategies: allStrategies,
@@ -77,11 +82,14 @@ export default function TournamentConfig({
         try {
           await removeStrategy(id)
           setSelectedIds((prev) => prev.filter((sid) => sid !== id))
-          toast.success("Stratégie supprimée avec succès.")
+          toast.success("Stratégie supprimée avec succès.", {
+            style: TOAST_STYLE.success,
+          })
         } catch (e: unknown) {
           const err = e as Error
           toast.error(
-            "Erreur lors de la suppression de la stratégie : " + err.message
+            "Erreur lors de la suppression de la stratégie : " + err.message,
+            { style: TOAST_STYLE.error }
           )
         }
       }
@@ -105,14 +113,33 @@ export default function TournamentConfig({
       nb_iterations: nbIterations,
       payoffs,
     }
+    const pendingTournoi: Tournoi = {
+      id: "tournoi-en-calcul",
+      nom: `Tournoi - ${selectedIds.length} stratégies`,
+      parties: [],
+      nb_iterations: nbIterations,
+      couts: payoffs,
+      date_creation: new Date().toLocaleDateString("fr-FR"),
+      meilleure_strategie: "",
+      strategies: selectedStrategies,
+      resultats: {},
+      scores_totaux: {},
+    }
+
     setIsLoading(true)
+    onTournamentCreating(pendingTournoi)
     try {
-      await createTournament(config)
-      toast.success("Tournoi lancé avec succès !")
-      onTournamentCreated()
+      const tournoi = await createTournament(config)
+      toast.success("Tournoi terminé avec succès !", {
+          style: TOAST_STYLE.success,
+      })
+      await onTournamentCreated(tournoi)
     } catch (e: unknown) {
       const err = e as Error
-      toast.error("Erreur lors du lancement du tournoi : " + err.message)
+      toast.error("Erreur lors du lancement du tournoi : " + err.message, {
+          style: TOAST_STYLE.error,
+      })
+      onTournamentCreationFailed()
     } finally {
       setIsLoading(false)
     }

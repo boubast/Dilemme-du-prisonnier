@@ -81,16 +81,9 @@ export async function createTournament(
       throw new Error("Erreur lors du lancement du tournoi")
     }
 
-    const result: { id_tournoi: number; nom_tournoi: string } =
-      await response.json()
+    const data : TournoiDTO = await response.json()
+    return mapTournoiDTOToTournoi(data)
 
-    // Récupère les détails du tournoi créé pour renvoyer l'objet complet
-    const newTournoi = await fetchTournamentById(String(result.id_tournoi))
-    if (!newTournoi) {
-      throw new Error("Le tournoi créé n'a pas pu être récupéré depuis l'API")
-    }
-
-    return newTournoi
   } catch (error) {
     console.error("createTournament error:", error)
     throw error
