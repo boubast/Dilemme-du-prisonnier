@@ -46,6 +46,7 @@ class Partie:
             actions_strat2_str = "["
             choix_strat1 = ""
             choix_strat2 = ""
+            iterations = []
 
             moteurChoix = MoteurChoix() #Exécuteur de code Rhai, en Singleton
             
@@ -68,12 +69,12 @@ class Partie:
                     error_msg = choix_strat2.replace("Erreur:", "", 1).strip()
                     raise RhaiScriptError(self.id_strategie_2, strategie_2.nom, no_iteration + 1, error_msg)
                 
-                # Création de l'itération en BD
+                # Création de l'itération en mémoire, sauvegardée en fin de partie
                 iteration = Iteration(id_partie=self.id_partie,
                                       numero_iteration=no_iteration+1,
                                       choix_strategie_1=int(choix_strat1),
                                       choix_strategie_2=int(choix_strat2))
-                db.add(iteration)
+                iterations.append(iteration)
 
                 if no_iteration==0: #On en met pas de virgule avant le premier élément des listes
                     actions_strat1_str = actions_strat1_str + choix_strat1
@@ -81,8 +82,8 @@ class Partie:
                 else:
                     actions_strat1_str = actions_strat1_str + "," + choix_strat1
                     actions_strat2_str = actions_strat2_str + "," + choix_strat2
-            
+
+            db.add_all(iterations)
             db.commit()
         finally:
             db.close()
-
