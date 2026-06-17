@@ -16,11 +16,13 @@ class Strategie(Base):
         "Partie",
         foreign_keys="Partie.id_strategie_1",
         back_populates="strategie_1",
+        passive_deletes=True,
     )
     parties_comme_strategie_2: Mapped[list["Partie"]] = relationship(
         "Partie",
         foreign_keys="Partie.id_strategie_2",
         back_populates="strategie_2",
+        passive_deletes=True,
     )
     participations: Mapped[list["Participation"]] = relationship(
         "Participation",

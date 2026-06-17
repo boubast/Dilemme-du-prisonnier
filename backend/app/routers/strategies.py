@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.choix import MoteurChoix
@@ -83,5 +84,13 @@ def delete_strategie(strategie_id: int, db: Session = Depends(get_db)) -> Respon
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Strategie introuvable")
 
     db.delete(strategie)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Impossible de supprimer cette stratégie car elle est utilisée par des données existantes.",
+        ) from exc
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)
