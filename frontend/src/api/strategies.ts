@@ -5,6 +5,15 @@ const API_URL =
   (import.meta.env.VITE_API_URL || "http://localhost:8000") +
   (import.meta.env.VITE_API_PREFIX || "/api/v1")
 
+async function getErrorMessage(response: Response, fallback: string) {
+  try {
+    const data: { detail?: unknown } = await response.json()
+    return typeof data.detail === "string" ? data.detail : fallback
+  } catch {
+    return fallback
+  }
+}
+
 export async function fetchStrategies(): Promise<Strategie[]> {
   try {
     const response = await fetch(`${API_URL}/strategy`)
@@ -114,7 +123,12 @@ export async function deleteStrategy(id: string): Promise<void> {
     })
 
     if (!response.ok) {
-      throw new Error("Erreur lors de la suppression de la stratégie")
+      throw new Error(
+        await getErrorMessage(
+          response,
+          "Erreur lors de la suppression de la stratégie"
+        )
+      )
     }
   } catch (error) {
     console.error("Erreur deleteStrategy:", error)
