@@ -21,6 +21,7 @@ import { Separator } from "./ui/separator"
 import { StrategyDialog } from "./strategy-dialog"
 import { createTournament } from "@/api/tournament"
 import { TOAST_STYLE } from "@/constants"
+import { ApiError } from "@/api/apiError"
 
 interface TournamentConfigProps {
   onTournamentCreated: (tournoi: Tournoi) => void | Promise<void>
@@ -86,9 +87,12 @@ export default function TournamentConfig({
             style: TOAST_STYLE.success,
           })
         } catch (e: unknown) {
-          const err = e as Error
+          const message =
+            e instanceof ApiError
+              ? e.friendlyMessage
+              : (e as Error).message || "Erreur inconnue"
           toast.error(
-            "Erreur lors de la suppression de la stratégie : " + err.message,
+            "Erreur lors de la suppression de la stratégie : " + message,
             { style: TOAST_STYLE.error }
           )
         }
@@ -135,9 +139,12 @@ export default function TournamentConfig({
       })
       await onTournamentCreated(tournoi)
     } catch (e: unknown) {
-      const err = e as Error
-      toast.error("Erreur lors du lancement du tournoi : " + err.message, {
-          style: TOAST_STYLE.error,
+      const message =
+        e instanceof ApiError
+          ? e.friendlyMessage
+          : (e as Error).message || "Erreur inconnue"
+      toast.error("Erreur lors du lancement du tournoi : " + message, {
+        style: TOAST_STYLE.error,
       })
       onTournamentCreationFailed()
     } finally {

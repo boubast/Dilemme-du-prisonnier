@@ -6,6 +6,7 @@ import type { FormEvent } from "react"
 import { useStrategy } from "@/hooks/useStrategy"
 import { HELP_BLOCKS, TOAST_STYLE } from "@/constants"
 import { toast } from "sonner"
+import { ApiError } from "@/api/apiError"
 
 interface StrategyDialogProps {
   open: boolean
@@ -40,8 +41,8 @@ export function StrategyDialog({
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    const success = await save()
-    if (success) {
+    try {
+      await save()
       toast.success(
         strategyId
           ? "Stratégie modifiée avec succès."
@@ -50,8 +51,15 @@ export function StrategyDialog({
       )
       onSave()
       onOpenChange(false)
-    } else {
-      toast.error("Erreur lors de l'enregistrement de la stratégie.")
+    } catch (err: unknown) {
+      const message =
+        err instanceof ApiError
+          ? err.friendlyMessage
+          : (err as Error).message || "Erreur inconnue"
+      toast.error(
+        `Erreur lors de l'enregistrement de la stratégie : ${message}`,
+        { style: TOAST_STYLE.error }
+      )
     }
   }
 
