@@ -78,12 +78,11 @@ export async function createTournament(
     })
 
     if (!response.ok) {
-      throw new Error("Erreur lors du lancement du tournoi")
+      throw new Error(response.statusText)
     }
 
-    const data : TournoiDTO = await response.json()
+    const data: TournoiDTO = await response.json()
     return mapTournoiDTOToTournoi(data)
-
   } catch (error) {
     console.error("createTournament error:", error)
     throw error

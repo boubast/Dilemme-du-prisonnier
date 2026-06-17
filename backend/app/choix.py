@@ -2,9 +2,15 @@ import os
 import tempfile
 from pathlib import Path
 from threading import Lock
+from wasmtime import Store, Module, Linker, Engine, Config, WasiConfig, Trap
 
-from wasmtime import Store, Module, Linker, Engine
-from wasmtime import WasiConfig
+class RhaiScriptError(Exception):
+    def __init__(self, strategy_id: int, strategy_name: str, iteration: int, message: str):
+        self.strategy_id = strategy_id
+        self.strategy_name = strategy_name
+        self.iteration = iteration
+        self.message = message
+        super().__init__(f"Strategy '{strategy_name}' (ID: {strategy_id}) failed at iteration {iteration}: {message}")
 
 # Classe pour la gestion Singleton Multithread
 class SingletonMeta(type):
@@ -22,36 +28,37 @@ class SingletonMeta(type):
 class MoteurChoix(metaclass=SingletonMeta):
 
     def __init__(self):
-        #Initialisation du moteur d'exécution WASM
-        #Long à exécuter (~0,5s), d'où le fonctionnement en Singleton
-
-        self.engine = Engine()
+        # Configuration du fuel pour limiter le nombre d'instructions exécutées par le script
+        config = Config()
+        config.consume_fuel = True
+        self.engine = Engine(config)
         
-        self.module = Module.from_file(self.engine,Path(__file__).parent / "rhai_runner" / "executables" / "rhai_runner.wasm")
+        self.module = Module.from_file(self.engine, Path(__file__).parent / "rhai_runner" / "executables" / "rhai_runner.wasm")
 
-    def choix(self,script,
+    def choix(self, script,
             actions_courante,
             actions_adverse,
             cout_trahison,
-                cout_cooperation,
-                cout_trahison_cooperation,
-                cout_cooperation_trahison
+            cout_cooperation,
+            cout_trahison_cooperation,
+            cout_cooperation_trahison
             ):
-        #Configuration et exécution d'un script
-
+        # Configuration et exécution d'un script avec limite de 40 000 000 instructions
         store = Store(self.engine)
+        store.set_fuel(40000000)
 
         wasi = WasiConfig()
-        wasi.inherit_stdout()
-        wasi.inherit_stderr()
 
         output_file = tempfile.NamedTemporaryFile(delete=False)
         output_file.close()
+        error_file = tempfile.NamedTemporaryFile(delete=False)
+        error_file.close()
 
         try:
             wasi.stdout_file = output_file.name
+            wasi.stderr_file = error_file.name
 
-            wasi.argv = ["",script,
+            wasi.argv = ["", script,
                 actions_courante,
                 actions_adverse,
                 cout_trahison,
@@ -64,7 +71,6 @@ class MoteurChoix(metaclass=SingletonMeta):
             linker.define_wasi()
 
             instance = linker.instantiate(store, self.module)
-
             start = instance.exports(store)["_start"]
 
             start(store)
@@ -74,7 +80,21 @@ class MoteurChoix(metaclass=SingletonMeta):
                 result = f.read().strip()
         
             return result
+        # Gestion des erreurs spécifiques à l'exécution du script
+        except Trap:
+            return "Erreur: Le script a été interrompu (Dépassement de la limite d'instructions / boucle infinie)"
+        except Exception as e:
+            try:
+                with open(error_file.name, encoding="utf-8") as f:
+                    err_content = f.read().strip()
+                if err_content:
+                    return f"Erreur: {err_content}"
+            except Exception:
+                pass
+            return f"Erreur: {str(e)}"
         finally:
-            os.unlink(output_file.name)
+            if os.path.exists(output_file.name):
+                os.unlink(output_file.name)
+            if os.path.exists(error_file.name):
+                os.unlink(error_file.name)
 
-        #TODO : Gestion des erreurs

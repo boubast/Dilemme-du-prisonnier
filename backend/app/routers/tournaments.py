@@ -7,8 +7,8 @@ from app.models.participation import Participation
 from app.models.partie import Partie
 from app.models.tournoi import Tournoi
 from app.schemas.tournoi import TournamentLaunchCreate, TournoiDetailRead, TournoiListRead
-
 from app.tournoi import Tournoi as TournoiMoteur
+from app.database import SessionLocal
 
 router = APIRouter(prefix="/tournament", tags=["tournament"])
 
@@ -67,7 +67,19 @@ async def launch_tournament(payload: TournamentLaunchCreate) -> TournoiMoteur:
                             payload.cout_trahi_trahi,
                             payload.strategie_ids)
 
-    response = await tournoi.execute_async()
+    try:
+        response = await tournoi.execute_async()
+    except Exception as e:
+        db = SessionLocal()
+        try:
+            # Suppression du tournoi en cas d'erreur lors de l'exécution
+            tournoi_db = db.get(Tournoi, tournoi.id_tournoi)
+            if tournoi_db:
+                db.delete(tournoi_db)
+                db.commit()
+        finally:
+            db.close()
+        raise e
 
     tournoi.generer_statistiques()
     lastTournamentStatistics = tournoi
