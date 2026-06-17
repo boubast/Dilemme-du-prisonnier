@@ -44,9 +44,8 @@ export default function TournamentHistory({
             No tournaments recorded.
           </p>
         ) : (
-          tournaments.map((t, index) => {
+          tournaments.map((t) => {
             const isActive = t.id === selectedId
-            const isRecent = index === 0 // Le premier de la liste triée
             const isPending = t.id === pendingTournamentId
 
             return (
@@ -72,21 +71,27 @@ export default function TournamentHistory({
                   >
                     {t.nom}
                   </span>
-                  {isPending ? (
+                  <div className="flex items-center gap-1">
                     <Badge
                       variant="secondary"
-                      className="h-4 shrink-0 rounded-sm border-none bg-primary/10 px-1 py-0 text-[9px] font-semibold tracking-wide text-primary uppercase"
+                      className={cn(
+                        "h-4 shrink-0 rounded-sm border-none px-1.5 py-0 text-[9px] font-semibold tracking-wide uppercase",
+                        t.mode === "multi"
+                          ? "bg-purple-500/15 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400"
+                          : "bg-zinc-500/15 text-zinc-600 dark:bg-zinc-500/20 dark:text-zinc-400"
+                      )}
                     >
                       In progress
                     </Badge>
-                  ) : isRecent ? (
+                    ) : isRecent ? (
                     <Badge
                       variant="secondary"
                       className="h-4 shrink-0 rounded-sm border-none bg-primary/10 px-1 py-0 text-[9px] font-semibold tracking-wide text-primary uppercase"
                     >
                       Recent
                     </Badge>
-                  ) : null}
+                    ) : null
+                  </div>
                 </div>
                 <div className="mt-1 flex items-center gap-2">
                   <p className="text-[10px] leading-none text-muted-foreground">

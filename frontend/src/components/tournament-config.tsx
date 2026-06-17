@@ -270,6 +270,7 @@ export default function TournamentConfig({
           <div className="min-h-0 flex-1 overflow-y-auto pr-1">
             <div className="grid grid-cols-2 gap-2">
               {availableStrategies.map((s) => (
+                // TODO: Supprimer la condition sur le mode une fois que l'édition/suppression est disponible pour le mode multi
                 <StrategyCard
                   key={s.id}
                   strategie={s}

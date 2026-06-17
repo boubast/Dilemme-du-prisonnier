@@ -43,7 +43,7 @@ export type Tournoi = {
   strategies: Strategie[]
   resultats: Record<string, VND>
   scores_totaux: Record<string, number>
-  multi_stats?: Record<string, { cooperations: number; defections: number }>
+  multi_stats?: Record<string, { cooperations: number; betrayal: number }>
 }
 
 export type Iteration = {

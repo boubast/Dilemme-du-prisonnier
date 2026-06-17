@@ -18,14 +18,16 @@ export const MOCK_MULTI_STRATEGIES: Strategie[] = [
   {
     id: "multi-majority",
     nom: "Majority Rule (Multi)",
-    explication: "Cooperates if the majority of opponents cooperated in the last turn.",
+    explication:
+      "Cooperates if the majority of opponents cooperated in the last turn.",
     script_rhai: "return Choice::COOPERATE;",
     mode: "multi",
   },
   {
     id: "multi-titfortat",
     nom: "Tit for Tat (Multi)",
-    explication: "Cooperates first, then replicates the choice of the most common opponent action.",
+    explication:
+      "Cooperates first, then replicates the choice of the most common opponent action.",
     script_rhai: "return Choice::COOPERATE;",
     mode: "multi",
   },
@@ -51,10 +53,10 @@ export const MOCK_MULTI_TOURNAMENTS: Tournoi[] = [
       "multi-titfortat": 530,
     },
     multi_stats: {
-      "multi-cooperate": { cooperations: 150, defections: 0 },
-      "multi-betray": { cooperations: 0, defections: 150 },
-      "multi-majority": { cooperations: 100, defections: 50 },
-      "multi-titfortat": { cooperations: 130, defections: 20 },
+      "multi-cooperate": { cooperations: 150, betrayal: 0 },
+      "multi-betray": { cooperations: 0, betrayal: 150 },
+      "multi-majority": { cooperations: 100, betrayal: 50 },
+      "multi-titfortat": { cooperations: 130, betrayal: 20 },
     },
   },
 ]
