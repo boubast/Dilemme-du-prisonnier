@@ -50,7 +50,7 @@ class Partie:
             moteurChoix = MoteurChoix() #Exécuteur de code Rhai, en Singleton
             
             for no_iteration in range(nb_iterations):
-                choix_strat1 = moteurChoix.choix(script1,actions_strat1_str + "]",actions_strat2_str + "]",
+                choix_strat1 = moteurChoix.choix_classique(script1,actions_strat1_str + "]",actions_strat2_str + "]",
                                             cout_trahi_trahi,
                                             cout_coop_coop,
                                             cout_trahi_coop,
@@ -59,7 +59,7 @@ class Partie:
                     error_msg = choix_strat1.replace("Erreur:", "", 1).strip()
                     raise RhaiScriptError(self.id_strategie_1, strategie_1.nom, no_iteration + 1, error_msg)
 
-                choix_strat2 = moteurChoix.choix(script2,actions_strat2_str + "]",actions_strat1_str + "]",
+                choix_strat2 = moteurChoix.choix_classique(script2,actions_strat2_str + "]",actions_strat1_str + "]",
                                             cout_trahi_trahi,
                                             cout_coop_coop,
                                             cout_trahi_coop,

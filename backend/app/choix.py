@@ -33,53 +33,52 @@ class MoteurChoix(metaclass=SingletonMeta):
         config.consume_fuel = True
         self.engine = Engine(config)
         
-        self.module = Module.from_file(self.engine, Path(__file__).parent / "rhai_runner" / "executables" / "rhai_runner.wasm")
+        self.module_classique = Module.from_file(self.engine, Path(__file__).parent / "rhai_runner" / "executables" / "rhai_runner.wasm")
 
-    def choix(self, script,
-            actions_courante,
-            actions_adverse,
-            cout_trahison,
-            cout_cooperation,
-            cout_trahison_cooperation,
-            cout_cooperation_trahison
-            ):
+        self.module_multi = Module.from_file(self.engine, Path(__file__).parent / "rhai_runner_multi" / "executables" / "rhai_runner_multi.wasm")
+
+        self.linker = Linker(self.engine)
+        self.linker.define_wasi()
+
+    def choix_preparation(self):
+        #Configuration commune
+
         # Configuration et exécution d'un script avec limite de 40 000 000 instructions
         store = Store(self.engine)
         store.set_fuel(40000000)
 
         wasi = WasiConfig()
-
         output_file = tempfile.NamedTemporaryFile(delete=False)
         output_file.close()
         error_file = tempfile.NamedTemporaryFile(delete=False)
         error_file.close()
+        wasi.stdout_file = output_file.name
+        wasi.stderr_file = error_file.name
+        
+        return store,wasi,output_file,error_file
 
+    def choix_fin(self,instance,store,output_file):
+        #Fin de l'exécution
+        start = instance.exports(store)["_start"]
+
+        start(store)
+        
+        result = ""
+        with open(output_file.name, encoding="utf-8") as f:
+            result = f.read().strip()
+
+        return result
+    
+    def choix_main(self,args,module):
         try:
-            wasi.stdout_file = output_file.name
-            wasi.stderr_file = error_file.name
+            store,wasi,output_file,error_file = self.choix_preparation()
 
-            wasi.argv = ["", script,
-                actions_courante,
-                actions_adverse,
-                cout_trahison,
-                cout_cooperation,
-                cout_trahison_cooperation,
-                cout_cooperation_trahison]
+            wasi.argv = args
             store.set_wasi(wasi)
 
-            linker = Linker(self.engine)
-            linker.define_wasi()
+            instance = self.linker.instantiate(store, module)
+            return self.choix_fin(instance,store,output_file)
 
-            instance = linker.instantiate(store, self.module)
-            start = instance.exports(store)["_start"]
-
-            start(store)
-        
-            result = ""
-            with open(output_file.name, encoding="utf-8") as f:
-                result = f.read().strip()
-        
-            return result
         # Gestion des erreurs spécifiques à l'exécution du script
         except Trap:
             return "Erreur: Le script a été interrompu (Dépassement de la limite d'instructions / boucle infinie)"
@@ -98,3 +97,38 @@ class MoteurChoix(metaclass=SingletonMeta):
             if os.path.exists(error_file.name):
                 os.unlink(error_file.name)
 
+    def choix_classique(self,script,
+            actions_courante,
+            actions_adverse,
+            cout_trahison,
+            cout_cooperation,
+            cout_trahison_cooperation,
+            cout_cooperation_trahison
+            ):
+        #Choix classique, pour une itération entre 2 stratégies
+        
+        #Préparation des arguments pour l'appel
+        args = ["",script,
+                actions_courante,
+                actions_adverse,
+                cout_trahison,
+                cout_cooperation,
+                cout_trahison_cooperation,
+                cout_cooperation_trahison]
+
+        return self.choix_main(args,self.module_classique)  
+    
+    def choix_multi(self,script,
+            actions,
+            actions_strats,
+            id_courant
+            ):
+        #Choix multijoueurs
+
+        #Préparation des arguments pour l'appel
+        args = ["",script,
+                actions,
+                actions_strats,
+                id_courant]
+
+        return self.choix_main(args,self.module_multi)
