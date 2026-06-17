@@ -27,7 +27,7 @@ class Tournoi_multi:
         self.duree = 0
 
     @staticmethod
-    def create_tournoi(strategie_ids,duree):
+    def create_tournoi(duree,strategie_ids):
         # Création du tournoi en BD
         #TODO Création tournoi en BD
         tournoi = Tournoi_multi()
@@ -78,10 +78,12 @@ class Tournoi_multi:
         try:
             nb_cooperate_total = 0
             nb_betray_total = 0
+            # Parcourir les stratégies du tournoi
             for i in range(len(self.strategie_ids)):
                 id_strategie = self.strategie_ids[i]
                 nb_cooperate = 0
                 nb_betray = 0
+                # Parcourir les choix de la stratégie
                 for pos_choix in self.actions_strats[i]:
                     if self.actions[pos_choix]=='1':
                         nb_betray += 1
@@ -93,9 +95,11 @@ class Tournoi_multi:
 
                 #TODO enregistrer les résultats en BD
             
+            # Calcul des valeurs de chaque action
             valeur_cooperate = (2*nb_cooperate_total + nb_betray_total) / (nb_cooperate_total + 5*nb_betray_total)
             valeur_betray = 5*valeur_cooperate
             
+            # Calcul et sauvegarde de la meilleure stratégie
             max_score = 0
             for id_strategie in self.strategie_ids:
                 score = self.resultats[id_strategie]["nb_cooperate"] * valeur_cooperate + self.resultats[id_strategie]["nb_betray"] * valeur_betray
