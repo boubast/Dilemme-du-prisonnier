@@ -5,13 +5,22 @@ type RhaiScriptError = {
   message: string
 }
 
+type GenericStructuredError = {
+  error_type: string
+  message: string
+}
+
 type PydanticValidationError = {
   msg: string
   [key: string]: unknown
 }
 
 type ApiErrorInfo = {
-  detail?: string | RhaiScriptError | PydanticValidationError[]
+  detail?:
+    | string
+    | RhaiScriptError
+    | GenericStructuredError
+    | PydanticValidationError[]
   [key: string]: unknown
 }
 
@@ -38,6 +47,10 @@ export class ApiError extends Error {
       return detail.message
     }
 
+    if (isGenericStructuredError(detail)) {
+      return detail.message
+    }
+
     if (Array.isArray(detail)) {
       return detail.map((err) => err.msg ?? JSON.stringify(err)).join(", ")
     }
@@ -51,6 +64,16 @@ function isRhaiScriptError(value: unknown): value is RhaiScriptError {
     typeof value === "object" &&
     value !== null &&
     (value as RhaiScriptError).error_type === "rhai_script_error"
+  )
+}
+
+function isGenericStructuredError(
+  value: unknown
+): value is GenericStructuredError {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as GenericStructuredError).message === "string"
   )
 }
 
@@ -70,6 +93,8 @@ async function parseErrorBody(
   if (typeof detail === "string") return { message: detail, info }
 
   if (isRhaiScriptError(detail)) return { message: detail.message, info }
+
+  if (isGenericStructuredError(detail)) return { message: detail.message, info }
 
   if (Array.isArray(detail)) {
     return {
