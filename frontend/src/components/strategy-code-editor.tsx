@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Editor } from "@monaco-editor/react"
-import type { BeforeMount, OnChange, OnMount } from "@monaco-editor/react"
+import type { BeforeMount, Monaco, OnChange, OnMount } from "@monaco-editor/react"
 import type { Position, editor } from "monaco-editor"
 import { useTheme } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
+import { validateRhaiScript } from "@/lib/rhai-validation"
 
 const RHAI_LANGUAGE_ID = "rhai"
 const DARK_QUERY = "(prefers-color-scheme: dark)"
@@ -18,6 +19,35 @@ interface StrategyCodeEditorProps {
 
 function getSystemTheme() {
   return window.matchMedia(DARK_QUERY).matches ? "dark" : "light"
+}
+
+function updateRhaiMarkers(
+  editorInstance: editor.IStandaloneCodeEditor,
+  monaco: Monaco,
+  script: string
+) {
+  const model = editorInstance.getModel()
+  if (!model) {
+    return
+  }
+
+  const syntaxError = validateRhaiScript(script)
+  monaco.editor.setModelMarkers(
+    model,
+    RHAI_LANGUAGE_ID,
+    syntaxError
+      ? [
+          {
+            message: syntaxError.message,
+            severity: monaco.MarkerSeverity.Error,
+            startLineNumber: syntaxError.lineNumber,
+            startColumn: syntaxError.column,
+            endLineNumber: syntaxError.lineNumber,
+            endColumn: syntaxError.column + syntaxError.length,
+          },
+        ]
+      : []
+  )
 }
 
 function useResolvedTheme() {
@@ -377,6 +407,8 @@ export function StrategyCodeEditor({
 }: StrategyCodeEditorProps) {
   const resolvedTheme = useResolvedTheme()
   const monacoTheme = resolvedTheme === "dark" ? "rhai-dark" : "rhai-light"
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
+  const monacoRef = useRef<Monaco | null>(null)
 
   const options = useMemo(
     () => ({
@@ -415,9 +447,18 @@ export function StrategyCodeEditor({
     onChange(nextValue ?? "")
   }
 
-  const handleMount: OnMount = (editor) => {
+  const handleMount: OnMount = (editor, monaco) => {
     editor.getDomNode()?.setAttribute("id", id)
+    editorRef.current = editor
+    monacoRef.current = monaco
+    updateRhaiMarkers(editor, monaco, value)
   }
+
+  useEffect(() => {
+    if (editorRef.current && monacoRef.current) {
+      updateRhaiMarkers(editorRef.current, monacoRef.current, value)
+    }
+  }, [value])
 
   return (
     <div

@@ -12,13 +12,13 @@ import {
 
 function formatRhaiScriptForEditor(script: string) {
   const source = script.replace(/\r\n?/g, "\n").trim()
-  let formatted = ""
-  let indentLevel = 0
-  let lineHasContent = false
+  let formatted: string = ""
+  let indentLevel: number = 0
+  let lineHasContent: boolean = false
   let quote: '"' | "'" | null = null
-  let escaped = false
-  let inLineComment = false
-  let inBlockComment = false
+  let escaped: boolean = false
+  let inLineComment: boolean = false
+  let inBlockComment: boolean = false
 
   if (!source) {
     return ""

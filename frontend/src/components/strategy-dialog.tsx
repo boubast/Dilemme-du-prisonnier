@@ -2,54 +2,13 @@ import { Save, Lightbulb } from "lucide-react"
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import type { FormEvent } from "react"
+import { useMemo, useState, type FormEvent } from "react"
 import { useStrategy } from "@/hooks/useStrategy"
 import { StrategyCodeEditor } from "@/components/strategy-code-editor"
-
-interface HelpBlock {
-  title: string
-  description: string
-  snippet: string
-}
-
-const HELP_BLOCKS: HelpBlock[] = [
-  {
-    title: "Always cooperate",
-    description: "Always cooperate",
-    snippet: `return Choice::COOPERATE;`,
-  },
-  {
-    title: "Always betray",
-    description: "Always betray",
-    snippet: `return Choice::BETRAY;`,
-  },
-  {
-    title: "Random",
-    description: "Random",
-    snippet: `if rand(0,1)==0{return Choice::COOPERATE;} 
-else{return Choice::BETRAY;};`,
-  },
-  {
-    title: "Tit for tat",
-    description:
-      "First cooperate, then subsequently replicate an opponent's previous action",
-    snippet: `if len(derniers_coups_strategie_adverse)==0{return Choice::COOPERATE;} 
-else{
-    if derniers_coups_strategie_adverse[-1]==Choice::COOPERATE.value{return Choice::COOPERATE;}
-    else{return Choice::BETRAY;}
-};`,
-  },
-  {
-    title: "Grudger",
-    description: "Cooperate, but always betray if an opponent betray",
-    snippet: `for i in derniers_coups_strategie_adverse{
-    if i==Choice::BETRAY.value{return Choice::BETRAY;}
-} 
-return Choice::COOPERATE;`,
-  },
-]
 import { HELP_BLOCKS, TOAST_STYLE } from "@/constants"
 import { toast } from "sonner"
+import { validateRhaiScript } from "@/lib/rhai-validation"
+import { validateStrategySyntax } from "@/api/strategies"
 
 interface StrategyDialogProps {
   open: boolean
@@ -74,6 +33,13 @@ export function StrategyDialog({
     loading: isLoading,
     save,
   } = useStrategy(false, strategyId, open)
+  const syntaxError = useMemo(
+    () => validateRhaiScript(scriptRhai),
+    [scriptRhai]
+  )
+  const [rhaiError, setRhaiError] = useState<string | null>(null)
+  const [isValidatingSyntax, setIsValidatingSyntax] = useState(false)
+  const displayedSyntaxError = syntaxError?.message || rhaiError
 
   function insertSnippet(snippet: string) {
     setScriptRhai((prev: string) => {
@@ -84,6 +50,28 @@ export function StrategyDialog({
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
+    if (syntaxError) {
+      toast.error(syntaxError.message, { style: TOAST_STYLE.error })
+      return
+    }
+
+    setIsValidatingSyntax(true)
+    setRhaiError(null)
+    try {
+      const validationError = await validateStrategySyntax(scriptRhai.trim())
+      if (validationError) {
+        setRhaiError(validationError)
+        toast.error(validationError, { style: TOAST_STYLE.error })
+        return
+      }
+    } catch (error) {
+      console.error("Erreur lors de la validation Rhai :", error)
+      toast.error("Impossible de valider la syntaxe Rhai.")
+      return
+    } finally {
+      setIsValidatingSyntax(false)
+    }
+
     const success = await save()
     if (success) {
       toast.success(
@@ -187,8 +175,16 @@ export function StrategyDialog({
                 <StrategyCodeEditor
                   id="strategy-code"
                   value={scriptRhai}
-                  onChange={setScriptRhai}
+                  onChange={(value) => {
+                    setRhaiError(null)
+                    setScriptRhai(value)
+                  }}
                 />
+                {displayedSyntaxError && (
+                  <p className="rounded-md border border-destructive/40 bg-destructive/10 px-2.5 py-2 text-xs text-destructive">
+                    {displayedSyntaxError}
+                  </p>
+                )}
                 <p className="text-[11px] text-muted-foreground">
                   La fonction doit retourner{" "}
                   <code className="rounded bg-muted px-1 font-mono">Choice::COOPERATE</code>{" "}
@@ -248,11 +244,17 @@ export function StrategyDialog({
                 </DialogClose>
                 <Button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={
+                    isLoading || isValidatingSyntax || Boolean(displayedSyntaxError)
+                  }
                   className="flex-1 justify-center gap-1.5"
                 >
                   <Save className="size-3.5" />
-                  {isLoading ? "Enregistrement..." : "Enregistrer"}
+                  {isValidatingSyntax
+                    ? "Validation..."
+                    : isLoading
+                      ? "Enregistrement..."
+                      : "Enregistrer"}
                 </Button>
               </div>
             </aside>

@@ -50,3 +50,12 @@ class StrategieDetailRead(StrategieBase):
     model_config = ConfigDict(from_attributes=True)
 
     id_strategie: int
+
+
+class StrategieSyntaxValidationRequest(BaseModel):
+    script_rhai: str = Field(..., min_length=1)
+
+
+class StrategieSyntaxValidationRead(BaseModel):
+    valid: bool
+    error: str | None = None
