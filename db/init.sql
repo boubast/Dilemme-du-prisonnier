@@ -9,7 +9,8 @@ DROP TABLE IF EXISTS strategie CASCADE;
 
 DROP TYPE IF EXISTS type_tournoi CASCADE;
 
-DROP FUNCTION IF EXISTS supprimer_tournois_apres_suppression_strategie() CASCADE;
+DROP FUNCTION IF EXISTS supprimer_tournois_apres_suppression_strategie_classique() CASCADE;
+DROP FUNCTION IF EXISTS supprimer_tournois_apres_suppression_strategie_multi() CASCADE;
 
 
 CREATE TYPE type_tournoi AS ENUM ('Classique', 'Multi');
@@ -41,6 +42,7 @@ CREATE TABLE tournoi_classique (
 
 CREATE TABLE tournoi_multi (
     id_tournoi BIGINT PRIMARY KEY,
+    duree_secondes SMALLINT NOT NULL,
     CONSTRAINT fk_tournoi_multi_tournoi FOREIGN KEY (id_tournoi) REFERENCES tournoi(id_tournoi) ON DELETE CASCADE
 );
 
@@ -81,17 +83,27 @@ CREATE TABLE participation_multi (
     CONSTRAINT fk_participation_strategie FOREIGN KEY (id_strategie) REFERENCES strategie(id_strategie) ON DELETE CASCADE
 );
 
-CREATE FUNCTION supprimer_tournois_apres_suppression_strategie() RETURNS TRIGGER AS $supprimer_tournois_apres_suppression_strategie$
+CREATE FUNCTION supprimer_tournois_apres_suppression_strategie_classique() RETURNS TRIGGER AS $supprimer_tournois_apres_suppression_strategie_classique$
     BEGIN
     DELETE FROM tournoi WHERE id_tournoi = OLD.id_tournoi;
 
     RETURN OLD;
     END;
-$supprimer_tournois_apres_suppression_strategie$ LANGUAGE plpgsql;
+$supprimer_tournois_apres_suppression_strategie_classique$ LANGUAGE plpgsql;
 
-CREATE TRIGGER supprimer_tournois_apres_suppression_strategie AFTER DELETE ON participation
-    FOR EACH ROW EXECUTE PROCEDURE supprimer_tournois_apres_suppression_strategie();
+CREATE FUNCTION supprimer_tournois_apres_suppression_strategie_multi() RETURNS TRIGGER AS $supprimer_tournois_apres_suppression_strategie_multi$
+    BEGIN
+    DELETE FROM tournoi WHERE id_tournoi = OLD.id_tournoi;
 
+    RETURN OLD;
+    END;
+$supprimer_tournois_apres_suppression_strategie_multi$ LANGUAGE plpgsql;
+
+CREATE TRIGGER supprimer_tournois_apres_suppression_strategie_classique AFTER DELETE ON participation
+    FOR EACH ROW EXECUTE PROCEDURE supprimer_tournois_apres_suppression_strategie_classique();
+
+CREATE TRIGGER supprimer_tournois_apres_suppression_strategie_multi AFTER DELETE ON participation_multi
+    FOR EACH ROW EXECUTE PROCEDURE supprimer_tournois_apres_suppression_strategie_multi();
 
 
 -- Insertions
