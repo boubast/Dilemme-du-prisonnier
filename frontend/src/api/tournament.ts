@@ -5,6 +5,7 @@ import {
   type TournoiDTO,
   type TournoiListItemDTO,
 } from "@/dto/tournament"
+import { handleApiResponseError } from "./apiError"
 
 const API_URL =
   (import.meta.env.VITE_API_URL || "http://localhost:8000") +
@@ -17,7 +18,7 @@ export async function fetchTournaments(): Promise<Tournoi[]> {
   try {
     const response = await fetch(`${API_URL}/tournament`)
     if (!response.ok) {
-      throw new Error("Erreur lors de la récupération des tournois")
+      throw await handleApiResponseError(response, "Erreur lors de la récupération des tournois")
     }
 
     const data: TournoiListItemDTO[] = await response.json()
@@ -42,7 +43,7 @@ export async function fetchTournamentById(
     }
 
     if (!response.ok) {
-      throw new Error(`Erreur lors de la récupération du tournoi ${id}`)
+      throw await handleApiResponseError(response, `Erreur lors de la récupération du tournoi ${id}`)
     }
 
     const data: TournoiDTO = await response.json()
@@ -78,12 +79,11 @@ export async function createTournament(
     })
 
     if (!response.ok) {
-      throw new Error("Erreur lors du lancement du tournoi")
+      throw await handleApiResponseError(response, "Erreur lors du lancement du tournoi")
     }
 
-    const data : TournoiDTO = await response.json()
+    const data: TournoiDTO = await response.json()
     return mapTournoiDTOToTournoi(data)
-
   } catch (error) {
     console.error("createTournament error:", error)
     throw error

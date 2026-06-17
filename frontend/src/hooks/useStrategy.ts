@@ -232,8 +232,10 @@ export function useStrategy(
   )
 
   // Sauvegarde (Création ou Mise à jour) basée sur l'état du formulaire
-  const save = useCallback(async (): Promise<boolean> => {
-    if (!nom.trim() || !explication.trim() || !scriptRhai.trim()) return false
+  const save = useCallback(async (): Promise<void> => {
+    if (!nom.trim() || !explication.trim() || !scriptRhai.trim()) {
+      throw new Error("Veuillez remplir tous les champs obligatoires.")
+    }
 
     setLoading(true)
     const payload = {
@@ -245,14 +247,9 @@ export function useStrategy(
     try {
       if (strategyId) {
         await editStrategy(strategyId, payload)
-        return true
+      } else {
+        await addStrategy(payload)
       }
-
-      await addStrategy(payload)
-      return true
-    } catch (e) {
-      console.error("Erreur lors de la sauvegarde :", e)
-      return false
     } finally {
       setLoading(false)
     }

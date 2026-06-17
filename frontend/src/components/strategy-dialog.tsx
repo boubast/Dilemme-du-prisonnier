@@ -9,6 +9,7 @@ import { HELP_BLOCKS, TOAST_STYLE } from "@/constants"
 import { toast } from "sonner"
 import { validateRhaiScript } from "@/lib/rhai-validation"
 import { validateStrategySyntax } from "@/api/strategies"
+import { ApiError } from "@/api/apiError"
 
 interface StrategyDialogProps {
   open: boolean
@@ -71,9 +72,8 @@ export function StrategyDialog({
     } finally {
       setIsValidatingSyntax(false)
     }
-
-    const success = await save()
-    if (success) {
+    try {
+      await save()
       toast.success(
         strategyId
           ? "Stratégie modifiée avec succès."
@@ -82,8 +82,15 @@ export function StrategyDialog({
       )
       onSave()
       onOpenChange(false)
-    } else {
-      toast.error("Erreur lors de l'enregistrement de la stratégie.")
+    } catch (err: unknown) {
+      const message =
+        err instanceof ApiError
+          ? err.friendlyMessage
+          : (err as Error).message || "Erreur inconnue"
+      toast.error(
+        `Erreur lors de l'enregistrement de la stratégie : ${message}`,
+        { style: TOAST_STYLE.error }
+      )
     }
   }
 
