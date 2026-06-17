@@ -10,6 +10,135 @@ import {
   deleteStrategy,
 } from "@/api/strategies"
 
+function formatRhaiScriptForEditor(script: string) {
+  const source = script.replace(/\r\n?/g, "\n").trim()
+  let formatted = ""
+  let indentLevel = 0
+  let lineHasContent = false
+  let quote: '"' | "'" | null = null
+  let escaped = false
+  let inLineComment = false
+  let inBlockComment = false
+
+  if (!source) {
+    return ""
+  }
+
+  const writeIndent = () => {
+    if (!lineHasContent) {
+      formatted += "    ".repeat(indentLevel)
+      lineHasContent = true
+    }
+  }
+
+  const write = (char: string) => {
+    writeIndent()
+    formatted += char
+  }
+
+  const newline = () => {
+    formatted = formatted.trimEnd()
+    if (!formatted.endsWith("\n")) {
+      formatted += "\n"
+    }
+    lineHasContent = false
+  }
+
+  for (let i = 0; i < source.length; i += 1) {
+    const char = source[i]
+    const nextChar = source[i + 1]
+
+    if (inLineComment) {
+      if (char === "\n") {
+        inLineComment = false
+        newline()
+      } else {
+        write(char)
+      }
+      continue
+    }
+
+    if (inBlockComment) {
+      write(char)
+      if (char === "*" && nextChar === "/") {
+        write(nextChar)
+        i += 1
+        inBlockComment = false
+      }
+      continue
+    }
+
+    if (quote) {
+      write(char)
+      if (escaped) {
+        escaped = false
+      } else if (char === "\\") {
+        escaped = true
+      } else if (char === quote) {
+        quote = null
+      }
+      continue
+    }
+
+    if (char === "/" && nextChar === "/") {
+      write(char)
+      write(nextChar)
+      i += 1
+      inLineComment = true
+      continue
+    }
+
+    if (char === "/" && nextChar === "*") {
+      write(char)
+      write(nextChar)
+      i += 1
+      inBlockComment = true
+      continue
+    }
+
+    if (char === "\"" || char === "'") {
+      quote = char
+      write(char)
+      continue
+    }
+
+    if (char === "\n") {
+      newline()
+      continue
+    }
+
+    if (char === "}") {
+      if (lineHasContent) {
+        newline()
+      }
+      indentLevel = Math.max(0, indentLevel - 1)
+      write(char)
+      continue
+    }
+
+    if (char === "{") {
+      write(char)
+      indentLevel += 1
+      newline()
+      continue
+    }
+
+    if (char === ";") {
+      write(char)
+      newline()
+      continue
+    }
+
+    if (!lineHasContent && /\s/.test(char)) {
+      continue
+    }
+
+    write(char)
+  }
+
+  return formatted.trim()
+}
+
 export function useStrategy(
   autoLoadList = false,
   strategyId: string | null = null,
@@ -54,7 +183,7 @@ export function useStrategy(
           if (s) {
             setNom(s.nom)
             setExplication(s.explication)
-            setScriptRhai(s.script_rhai)
+            setScriptRhai(formatRhaiScriptForEditor(s.script_rhai))
           }
         } catch (error) {
           console.error("Erreur lors du chargement de la stratégie :", error)

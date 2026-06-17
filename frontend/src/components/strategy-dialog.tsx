@@ -189,9 +189,9 @@ export function StrategyDialog({
                 />
                 <p className="text-[11px] text-muted-foreground">
                   La fonction doit retourner{" "}
-                  <code className="rounded bg-muted px-1 font-mono">0</code>{" "}
+                  <code className="rounded bg-muted px-1 font-mono">Choice::COOPERATE</code>{" "}
                   (coopérer) ou{" "}
-                  <code className="rounded bg-muted px-1 font-mono">1</code>{" "}
+                  <code className="rounded bg-muted px-1 font-mono">Choice::BETRAY</code>{" "}
                   (trahir).
                 </p>
               </div>
