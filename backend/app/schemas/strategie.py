@@ -1,4 +1,5 @@
 import re
+from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -7,11 +8,15 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 def remove_script_line_breaks(script: str) -> str:
     return re.sub(r"\s*[\r\n]+\s*", " ", script).strip()
 
+class Type_tournoi (str,Enum):
+    Classique = 'Classique'
+    Multi = 'Multi'
 
 class StrategieBase(BaseModel):
     nom: str = Field(..., min_length=1, max_length=255)
     explication: str = Field(..., min_length=1)
     script_rhai: str = Field(..., min_length=1)
+    type_strategie: Type_tournoi = Field(...)
 
     @field_validator("script_rhai", mode="before")
     @classmethod
@@ -29,6 +34,7 @@ class StrategieUpdate(BaseModel):
     nom: str | None = Field(default=None, min_length=1, max_length=255)
     explication: str | None = Field(default=None, min_length=1)
     script_rhai: str | None = Field(default=None, min_length=1)
+    type_strategie: Type_tournoi | None = Field(default=None)
 
     @field_validator("script_rhai", mode="before")
     @classmethod
@@ -44,6 +50,7 @@ class StrategieListRead(BaseModel):
     id_strategie: int
     nom: str
     explication: str
+    type_strategie: Type_tournoi
 
 
 class StrategieDetailRead(StrategieBase):

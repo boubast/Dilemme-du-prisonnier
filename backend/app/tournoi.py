@@ -3,8 +3,9 @@ from datetime import date
 
 from app.partie import Partie
 
-from app.models import Iteration, Strategie, Participation
-from app.models import Tournoi as TournoiModel
+from app.models import Strategie, Participation
+from app.models import Tournament as TournoiModel
+from app.models import TournamentClassic as TournoiClassicModel
 from app.models import Partie as PartieModel
 from app.database import SessionLocal
 
@@ -23,6 +24,10 @@ class Tournoi:
         self.parties = []
         self.participations = []
         self.strategie_ids = []
+        self.type_tournoi = "Classique"
+
+        self.duree_secondes = None
+        self.participations_multi = None
 
         # Récupérer un tournoi de la BD
         db = SessionLocal()
@@ -30,29 +35,37 @@ class Tournoi:
             stmt = (
                 select(TournoiModel)
                 .where(TournoiModel.id_tournoi == id_tournoi)
-                .options(
-                    selectinload(TournoiModel.parties).selectinload(PartieModel.iterations),
-                    selectinload(TournoiModel.parties).selectinload(PartieModel.strategie_1),
-                    selectinload(TournoiModel.parties).selectinload(PartieModel.strategie_2),
-                    selectinload(TournoiModel.participations).selectinload(Participation.strategie),
-                )
             )
             tournoiBD = db.scalars(stmt).first()
             if tournoiBD is None:
                 raise ValueError("Tournoi introuvable")
+            
+            stmt = (
+                select(TournoiClassicModel)
+                .where(TournoiClassicModel.id_tournoi == id_tournoi)
+                .options(
+                    selectinload(TournoiClassicModel.parties).selectinload(PartieModel.iterations),
+                    selectinload(TournoiClassicModel.parties).selectinload(PartieModel.strategie_1),
+                    selectinload(TournoiClassicModel.parties).selectinload(PartieModel.strategie_2),
+                    selectinload(TournoiClassicModel.participations).selectinload(Participation.strategie),
+                )
+            )
+            tournoiClassicBD = db.scalars(stmt).first()
+            if tournoiClassicBD is None:
+                raise ValueError("Tournoi introuvable")
 
-            self.participations = tournoiBD.participations
-            self.parties = tournoiBD.parties
+            self.participations = tournoiClassicBD.participations
+            self.parties = tournoiClassicBD.parties
             for partie in self.parties:
                 partie.resultats = {"V1": 0, "V2": 0, "N": 0}
                 partie.score_strategie_1 = 0
                 partie.score_strategie_2 = 0
 
-            self.nb_iterations = tournoiBD.nb_iterations
-            self.cout_coop_coop = tournoiBD.cout_coop_coop
-            self.cout_coop_trahi = tournoiBD.cout_coop_trahi
-            self.cout_trahi_coop = tournoiBD.cout_trahi_coop
-            self.cout_trahi_trahi = tournoiBD.cout_trahi_trahi
+            self.nb_iterations = tournoiClassicBD.nb_iterations
+            self.cout_coop_coop = tournoiClassicBD.cout_coop_coop
+            self.cout_coop_trahi = tournoiClassicBD.cout_coop_trahi
+            self.cout_trahi_coop = tournoiClassicBD.cout_trahi_coop
+            self.cout_trahi_trahi = tournoiClassicBD.cout_trahi_trahi
             self.strategie_ids = [participation.id_strategie 
                                   for participation in self.participations]
             self.date_creation = tournoiBD.date_creation
@@ -64,17 +77,22 @@ class Tournoi:
     @staticmethod
     def create_tournoi(nb_iterations,cout_coop_coop,cout_coop_trahi,cout_trahi_coop,cout_trahi_trahi,strategie_ids):
         # Création du tournoi en BD
-        tournoi = TournoiModel(nb_iterations=nb_iterations,
-                               cout_coop_coop=cout_coop_coop,
-                               cout_coop_trahi=cout_coop_trahi,
-                               cout_trahi_coop=cout_trahi_coop,
-                               cout_trahi_trahi=cout_trahi_trahi,
-                               date_creation=date.today())
+        tournoi = TournoiModel(date_creation=date.today(),
+                               type_tournoi="Classique")
+        
         db = SessionLocal()
         try:
             db.add(tournoi)
             db.commit()
             db.refresh(tournoi)
+
+            tournoi_multi = TournoiClassicModel(id_tournoi=tournoi.id_tournoi,
+                               nb_iterations=nb_iterations,
+                               cout_coop_coop=cout_coop_coop,
+                               cout_coop_trahi=cout_coop_trahi,
+                               cout_trahi_coop=cout_trahi_coop,
+                               cout_trahi_trahi=cout_trahi_trahi)
+            db.add(tournoi_multi)
 
             # Création des participations (lien tournoi - stratégie) en BD
             for id_strategie in strategie_ids:
@@ -190,25 +208,7 @@ class Tournoi:
                 tasks.append(run_partie(id_strategie1, id_strategie2))
 
         await asyncio.gather(*tasks)
-        db = SessionLocal()
-        try:
-            stmt = (
-                select(TournoiModel)
-                .where(TournoiModel.id_tournoi == self.id_tournoi)
-                .options(
-                    selectinload(TournoiModel.parties).selectinload(PartieModel.iterations),
-                    selectinload(TournoiModel.parties).selectinload(PartieModel.strategie_1),
-                    selectinload(TournoiModel.parties).selectinload(PartieModel.strategie_2),
-                    selectinload(TournoiModel.participations).selectinload(Participation.strategie),
-                )
-            )
-            tournoiBD = db.scalars(stmt).first()
-
-            self.participations = tournoiBD.participations
-            self.parties = tournoiBD.parties
-        finally:
-            db.close()
-        return self
+        return Tournoi(self.id_tournoi)
 
     def execute(self):
         return asyncio.run(self.execute_async())

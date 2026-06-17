@@ -9,7 +9,7 @@ class Participation(Base):
 
     id_tournoi: Mapped[int] = mapped_column(
         BigInteger,
-        ForeignKey("tournoi.id_tournoi", ondelete="CASCADE"),
+        ForeignKey("tournoi_classique.id_tournoi", ondelete="CASCADE"),
         primary_key=True,
     )
     id_strategie: Mapped[int] = mapped_column(
@@ -18,5 +18,5 @@ class Participation(Base):
         primary_key=True,
     )
 
-    tournoi: Mapped["Tournoi"] = relationship("Tournoi", back_populates="participations")
+    tournoi: Mapped["TournamenClassic"] = relationship("TournamentClassic", back_populates="participations")
     strategie: Mapped["Strategie"] = relationship("Strategie", back_populates="participations")

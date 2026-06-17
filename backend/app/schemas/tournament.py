@@ -1,9 +1,13 @@
 from datetime import date
+from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
 from app.schemas.strategie import StrategieDetailRead
 
+class Type_tournoi (str,Enum):
+    Classique = 'Classique'
+    Multi = 'Multi'
 
 class TournamentLaunchCreate(BaseModel):
     strategie_ids: list[int] = Field(..., min_length=2)
@@ -20,6 +24,16 @@ class TournamentLaunchCreate(BaseModel):
             raise ValueError("Un tournoi ne peut pas utiliser plusieurs fois la meme strategie")
         return strategie_ids
 
+class TournamentMultiLaunchCreate(BaseModel):
+    strategie_ids: list[int] = Field(..., min_length=2)
+    duree_secondes: int
+
+    @field_validator("strategie_ids")
+    @classmethod
+    def validate_unique_strategies(cls, strategie_ids: list[int]) -> list[int]:
+        if len(strategie_ids) != len(set(strategie_ids)):
+            raise ValueError("Un tournoi ne peut pas utiliser plusieurs fois la meme strategie")
+        return strategie_ids
 
 class IterationRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -50,20 +64,31 @@ class ParticipationRead(BaseModel):
     id_strategie: int
     strategie: StrategieDetailRead
 
+class ParticipationMultiRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
 
-class CoutsSchema(BaseModel):
+    id_strategie: int
+    strategie: StrategieDetailRead
+
+    nb_cooperate: int
+    nb_betray: int
+    score: int
+
+
+class CostsSchema(BaseModel):
     tentation: int
     recompense: int
     punition: int
     dupe: int
 
 
-class TournoiListRead(BaseModel):
+class TournamentListRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id_tournoi: int
     date_creation: date
     meilleure_strategie: str | None
+    type_tournoi: Type_tournoi | None
 
     @computed_field
     @property
@@ -71,38 +96,44 @@ class TournoiListRead(BaseModel):
         return f"Tournoi #{self.id_tournoi}"
 
 
-class TournoiDetailRead(BaseModel):
+class TournamentDetailRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id_tournoi: int
-    nb_iterations: int
+    nb_iterations: int | None
     date_creation: date
     meilleure_strategie: str | None
-    parties: list[PartieRead]
+    parties: list[PartieRead] | None
+    type_tournoi: Type_tournoi
 
     # Champs exclus
-    cout_coop_coop: int = Field(exclude=True)
-    cout_coop_trahi: int = Field(exclude=True)
-    cout_trahi_coop: int = Field(exclude=True)
-    cout_trahi_trahi: int = Field(exclude=True)
-    participations: list[ParticipationRead] = Field(exclude=True)
-    resultats:dict #= Field(exclude=True)
-    scores_totaux:dict
+    cout_coop_coop: int | None = Field(exclude=True)
+    cout_coop_trahi: int | None = Field(exclude=True)
+    cout_trahi_coop: int | None = Field(exclude=True)
+    cout_trahi_trahi: int | None = Field(exclude=True)
+    duree_secondes: int | None = Field(exclude=True)
+    participations: list[ParticipationRead] | None = Field(exclude=True)
+    participations_multi: list[ParticipationRead] | None = Field(exclude=True)
+    resultats:dict | None
+    scores_totaux:dict | None
 
     @computed_field
     @property
     def nom(self) -> str:
-        return f"Tournoi #{self.id_tournoi}"
+        return f"Tournament #{self.id_tournoi}"
 
     @computed_field
     @property
-    def couts(self) -> CoutsSchema:
-        return CoutsSchema(
-            recompense=self.cout_coop_coop,
-            dupe=self.cout_coop_trahi,
-            tentation=self.cout_trahi_coop,
-            punition=self.cout_trahi_trahi,
-        )
+    def couts(self) -> CostsSchema | None:
+        try:
+            return CostsSchema(
+                recompense=self.cout_coop_coop,
+                dupe=self.cout_coop_trahi,
+                tentation=self.cout_trahi_coop,
+                punition=self.cout_trahi_trahi,
+            )
+        except:
+            return None
 
     @computed_field
     @property
