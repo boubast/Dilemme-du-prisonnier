@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Search, X, Play, Plus } from "lucide-react"
-import type { Couts, Tournoi, TournamentConfig } from "@/type"
+import type { Couts, Tournoi, TournamentConfig, TournamentMode } from "@/type"
 import { useStrategy } from "@/hooks/useStrategy"
+import { MOCK_MULTI_STRATEGIES } from "@/mocks"
 const DEFAULT_PAYOFFS: Couts = {
   tentation: 5,
   recompense: 3,
@@ -24,12 +25,14 @@ import { TOAST_STYLE } from "@/constants"
 import { ApiError } from "@/api/apiError"
 
 interface TournamentConfigProps {
+  mode: TournamentMode
   onTournamentCreated: (tournoi: Tournoi) => void | Promise<void>
   onTournamentCreating: (tournoi: Tournoi) => void
   onTournamentCreationFailed: () => void
 }
 
 export default function TournamentConfig({
+  mode,
   onTournamentCreated,
   onTournamentCreating,
   onTournamentCreationFailed,
@@ -42,6 +45,7 @@ export default function TournamentConfig({
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [search, setSearch] = useState("")
   const [nbIterations, setNbIterations] = useState(200)
+  const [durationSeconds, setDurationSeconds] = useState(10)
   const [payoffs, setPayoffs] = useState<Couts>(DEFAULT_PAYOFFS)
   const [isLoading, setIsLoading] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
@@ -54,13 +58,24 @@ export default function TournamentConfig({
     null
   )
 
+  // Reset selections when game mode changes
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSelectedIds([])
+    setSearch("")
+  }, [mode])
+
+  // Filter strategies based on current game mode
+  const filteredAllStrategies =
+    mode === "multi" ? MOCK_MULTI_STRATEGIES : allStrategies
+
   // Stratégies sélectionnées (objets complets)
-  const selectedStrategies = allStrategies.filter((s) =>
+  const selectedStrategies = filteredAllStrategies.filter((s) =>
     selectedIds.includes(s.id)
   )
 
   // Stratégies disponibles = non sélectionnées + filtre recherche
-  const availableStrategies = allStrategies.filter(
+  const availableStrategies = filteredAllStrategies.filter(
     (s) =>
       !selectedIds.includes(s.id) &&
       s.nom.toLowerCase().includes(search.toLowerCase())
@@ -134,17 +149,22 @@ export default function TournamentConfig({
   async function handleSubmit() {
     if (selectedIds.length < 2) return
     const config: TournamentConfig = {
+      mode,
       strategies_ids: selectedIds,
       nb_iterations: nbIterations,
+      duration_seconds: durationSeconds,
       payoffs,
     }
     const pendingTournoi: Tournoi = {
       id: "tournoi-en-calcul",
       nom: `Tournament - ${selectedIds.length} strategies`,
       parties: [],
-      nb_iterations: nbIterations,
+      nb_iterations: mode === "classic" ? nbIterations : 0,
+      duration_seconds: mode === "multi" ? durationSeconds : undefined,
       couts: payoffs,
-      date_creation: new Date().toLocaleDateString("fr-FR"),
+      date_creation: new Date().toLocaleDateString(
+        mode === "classic" ? "fr-FR" : "en-US"
+      ),
       meilleure_strategie: "",
       strategies: selectedStrategies,
       resultats: {},
@@ -174,15 +194,14 @@ export default function TournamentConfig({
   }
 
   return (
-    <div className="flex items-start gap-5">
+    <div className="flex min-h-[75vh] items-start gap-5">
       {/* ── Sélection des stratégies ── */}
       <section
         className="flex min-h-0 w-2/3 flex-col gap-3 overflow-hidden rounded-xl border border-border bg-card p-4"
-        style={
-          settingsHeight
-            ? { height: settingsHeight, maxHeight: settingsHeight }
-            : undefined
-        }
+        style={{
+          height: settingsHeight ? `max(${settingsHeight}px, 75vh)` : "75vh",
+          maxHeight: settingsHeight ? `max(${settingsHeight}px, 75vh)` : "75vh",
+        }}
       >
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -195,6 +214,7 @@ export default function TournamentConfig({
               {selectedIds.length === 1 ? "y" : "ies"}
             </p>
           </div>
+
           <Button
             type="button"
             variant="outline"
@@ -224,7 +244,7 @@ export default function TournamentConfig({
           <input
             ref={searchRef}
             type="text"
-            placeholder="Search for a strategy..."
+            placeholder={"Search strategy..."}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className={cn(
@@ -254,8 +274,10 @@ export default function TournamentConfig({
                   key={s.id}
                   strategie={s}
                   onSelect={handleSelect}
-                  onEdit={handleEditStrategy}
-                  onDelete={handleDeleteStrategy}
+                  onEdit={mode === "classic" ? handleEditStrategy : undefined}
+                  onDelete={
+                    mode === "classic" ? handleDeleteStrategy : undefined
+                  }
                 />
               ))}
             </div>
@@ -276,9 +298,9 @@ export default function TournamentConfig({
       <div ref={settingsRef} className="flex w-1/3 flex-col gap-5">
         {/* ── Paramètres ── */}
         <section className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4">
-          <h2 className="text-sm font-semibold text-foreground">Settings</h2>
+          <h2 className="text-sm font-semibold text-foreground">Parameters</h2>
 
-          {/* Nombre d'itérations */}
+          {/* Nombre d'itérations / seconds */}
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
               <label
@@ -292,11 +314,16 @@ export default function TournamentConfig({
               id="nb-iterations"
               type="number"
               min={1}
-              max={10000}
-              value={nbIterations}
-              onChange={(e) =>
-                setNbIterations(Math.max(1, Number(e.target.value)))
-              }
+              max={mode === "classic" ? 10000 : 3600}
+              value={mode === "classic" ? nbIterations : durationSeconds}
+              onChange={(e) => {
+                const val = Math.max(1, Number(e.target.value))
+                if (mode === "classic") {
+                  setNbIterations(val)
+                } else {
+                  setDurationSeconds(val)
+                }
+              }}
               className={cn(
                 "w-full rounded-md border border-input bg-background px-3 py-1.5 font-mono text-sm",
                 "focus:border-ring focus:ring-2 focus:ring-ring/50 focus:outline-none",
@@ -347,8 +374,9 @@ export default function TournamentConfig({
             />
           </div>
 
-          <PayoffMatrix payoffs={payoffs} />
-        </section>
+            <PayoffMatrix payoffs={payoffs} />
+          </section>
+        
 
         {/* ── Lancer le tournoi ── */}
         <Button
@@ -358,7 +386,7 @@ export default function TournamentConfig({
           className="w-full gap-2 font-semibold"
         >
           <Play className="size-4" />
-          {isLoading ? "Starting..." : "Start tournament"}
+          {isLoading ? "Launching..." : "Launch tournament"}
         </Button>
       </div>
 

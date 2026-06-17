@@ -6,6 +6,7 @@ import {
   fetchTournamentById,
   createTournament,
 } from "@/api/tournament"
+import { MOCK_MULTI_TOURNAMENTS } from "@/mocks"
 
 //TODO : Type de tournoi
 
@@ -22,7 +23,11 @@ export function useTournament(
     setLoading(true)
     try {
       const list = await fetchTournaments()
-      setTournaments(list)
+      const classicTournaments = list.map((t) => {
+        t.mode = "classic"
+        return t
+      })
+      setTournaments([...classicTournaments, ...MOCK_MULTI_TOURNAMENTS])
     } catch (e) {
       console.error("Could not retrieve tournaments:", e)
     } finally {
@@ -44,6 +49,12 @@ export function useTournament(
       return
     }
 
+    if (tournamentId.startsWith("multi-")) {
+      const t = MOCK_MULTI_TOURNAMENTS.find((x) => x.id === tournamentId)
+      setActiveTournament(t || null)
+      return
+    }
+
     let ignore = false
 
     const loadActive = async () => {
@@ -52,6 +63,9 @@ export function useTournament(
         const t = await fetchTournamentById(tournamentId, "Classique")
         if (ignore) return
 
+        if (t) {
+          t.mode = "classic"
+        }
         setActiveTournament(t || null)
       } catch (e) {
         console.error("Could not retrieve tournament details:", e)
