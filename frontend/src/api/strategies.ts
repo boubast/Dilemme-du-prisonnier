@@ -8,7 +8,7 @@ const API_URL =
 
 export async function fetchStrategies(typeTournoi:string): Promise<Strategie[]> {
   try {
-    const response = await fetch(`${API_URL}/strategy/${typeTournoi}`)
+    const response = await fetch(`${API_URL}/strategy/type/${typeTournoi}`)
 
     if (!response.ok) {
       throw await handleApiResponseError(
@@ -84,7 +84,8 @@ export async function createStrategy(
 }
 
 export async function validateStrategySyntax(
-  scriptRhai: string
+  scriptRhai: string,
+  typeTournoi: string
 ): Promise<string | null> {
   const response = await fetch(`${API_URL}/strategy/validate-syntax`, {
     method: "POST",
@@ -93,6 +94,7 @@ export async function validateStrategySyntax(
     },
     body: JSON.stringify({
       script_rhai: scriptRhai,
+      type_tournoi: typeTournoi,
     }),
   })
 

@@ -47,7 +47,6 @@ def get_tournament(type_tournoi:Type_tournoi, tournoi_id: int, db: Session = Dep
                     detail="Tournoi introuvable",
                 )
             tournoiStats = TournoiMultiMoteur(tournoi.id_tournoi)
-            tournoiStats.generer_statistiques()
             return tournoiStats
         else:
             stmt = (

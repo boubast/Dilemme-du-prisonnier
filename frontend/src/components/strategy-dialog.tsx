@@ -64,7 +64,7 @@ export function StrategyDialog({
     setIsValidatingSyntax(true)
     setRhaiError(null)
     try {
-      const validationError = await validateStrategySyntax(scriptRhai.trim())
+      const validationError = await validateStrategySyntax(scriptRhai.trim(),typeTournoi)
       if (validationError) {
         setRhaiError(validationError)
         toast.error(validationError, { style: TOAST_STYLE.error })

@@ -44,8 +44,9 @@ export default function TournamentHistory({
             No tournaments recorded.
           </p>
         ) : (
-          tournaments.map((t) => {
+          tournaments.map((t, index) => {
             const isActive = t.id === selectedId
+            const isRecent = index === 0
             const isPending = t.id === pendingTournamentId
 
             return (
@@ -83,14 +84,21 @@ export default function TournamentHistory({
                     >
                       In progress
                     </Badge>
-                    ) : isRecent ? (
+                    {isPending ? (
                     <Badge
                       variant="secondary"
                       className="h-4 shrink-0 rounded-sm border-none bg-primary/10 px-1 py-0 text-[9px] font-semibold tracking-wide text-primary uppercase"
                     >
-                      Recent
+                      En cours
                     </Badge>
-                    ) : null
+                  ) : isRecent ? (
+                    <Badge
+                      variant="secondary"
+                      className="h-4 shrink-0 rounded-sm border-none bg-primary/10 px-1 py-0 text-[9px] font-semibold tracking-wide text-primary uppercase"
+                    >
+                      Récent
+                    </Badge>
+                  ) : null}
                   </div>
                 </div>
                 <div className="mt-1 flex items-center gap-2">
