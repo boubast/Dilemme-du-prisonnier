@@ -15,6 +15,7 @@ help:
 	@echo "  make restart            Redemarre les services avec reconstruction"
 	@echo "  make logs               Affiche les logs Docker Compose"
 	@echo "  make ps                 Affiche l'etat des services"
+	@echo "  make backend-dev      	 Lance FastAPI en local"
 	@echo "  make backend-shell      Ouvre un shell dans le conteneur backend"
 	@echo "  make postgres-shell     Ouvre psql dans le conteneur PostgreSQL"
 	@echo "  make frontend-install   Installe les dependances frontend"
@@ -45,6 +46,9 @@ ps:
 
 backend-shell:
 	$(COMPOSE) exec backend bash
+
+backend-dev:
+	python3 -m fastapi dev backend/app/main.py
 
 postgres-shell:
 	$(COMPOSE) exec postgres sh -c 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'
