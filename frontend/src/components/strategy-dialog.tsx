@@ -1,5 +1,6 @@
-import { Save, Lightbulb } from "lucide-react"
+import { Save, Lightbulb, HelpCircle, ExternalLink } from "lucide-react"
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useMemo, useState, type FormEvent } from "react"
@@ -178,6 +179,148 @@ export function StrategyDialog({
                   >
                     Script Rhai
                   </label>
+                  <Popover modal={true}>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+                        aria-label="Rhai variables help"
+                      >
+                        <HelpCircle className="size-4" />
+                        <span>Help</span>
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      side="right"
+                      align="center"
+                      sideOffset={8}
+                      className="w-80 sm:w-105 p-4 max-h-100 overflow-y-auto"
+                      onWheel={(e) => e.stopPropagation()}
+                      onTouchMove={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex flex-col gap-3">
+                        <div className="border-b border-border pb-2">
+                          <h4 className="font-semibold text-foreground text-sm">
+                            Rhai Variables &amp; Syntax
+                          </h4>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">
+                            Variables and functions available during each turn of your strategy's execution.
+                          </p>
+                        </div>
+
+                        {/* Variables */}
+                        <div className="flex flex-col gap-1.5">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                            Injected Variables
+                          </span>
+                          <div className="flex flex-col gap-2 text-xs">
+                            <div className="rounded-md bg-muted/40 p-2 border border-border/50">
+                              <code className="font-mono text-primary font-semibold block text-[11px]">
+                                derniers_coups_strategie_courante
+                              </code>
+                              <span className="text-muted-foreground text-[11px]">
+                                List of your past choices (e.g., <code className="font-mono bg-muted px-1 text-[10px]">[0, 1]</code>).
+                              </span>
+                            </div>
+                            <div className="rounded-md bg-muted/40 p-2 border border-border/50">
+                              <code className="font-mono text-primary font-semibold block text-[11px]">
+                                derniers_coups_strategie_adverse
+                              </code>
+                              <span className="text-muted-foreground text-[11px]">
+                                List of the opponent's past choices (e.g., <code className="font-mono bg-muted px-1 text-[10px]">[0, 1]</code>).
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 mt-1">
+                              <div className="rounded-md bg-muted/40 p-2 border border-border/50">
+                                <code className="font-mono text-primary font-semibold block text-[11px]">
+                                  cout_cooperation
+                                </code>
+                                <span className="text-muted-foreground text-[11px]">
+                                  Mutual cooperation (C-C).
+                                </span>
+                              </div>
+                              <div className="rounded-md bg-muted/40 p-2 border border-border/50">
+                                <code className="font-mono text-primary font-semibold block text-[11px]">
+                                  cout_trahison
+                                </code>
+                                <span className="text-muted-foreground text-[11px]">
+                                  Mutual betrayal (T-T).
+                                </span>
+                              </div>
+                              <div className="rounded-md bg-muted/40 p-2 border border-border/50">
+                                <code className="font-mono text-primary font-semibold block text-[11px]">
+                                  cout_trahison_cooperation
+                                </code>
+                                <span className="text-muted-foreground text-[11px]">
+                                  Temptation (you betray, opponent cooperates).
+                                </span>
+                              </div>
+                              <div className="rounded-md bg-muted/40 p-2 border border-border/50">
+                                <code className="font-mono text-primary font-semibold block text-[11px]">
+                                  cout_cooperation_trahison
+                                </code>
+                                <span className="text-muted-foreground text-[11px]">
+                                  Sucker (you cooperate, opponent betrays).
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Syntaxe & Astuces */}
+                        <div className="flex flex-col gap-1.5 border-t border-border pt-2.5">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                            Syntax &amp; Tips
+                          </span>
+                          <ul className="list-disc list-inside text-[11px] text-muted-foreground space-y-1.5 leading-relaxed">
+                            <li>
+                              Must return{" "}
+                              <code className="font-mono text-foreground font-semibold bg-muted px-1">
+                                Choice::COOPERATE
+                              </code>{" "}
+                              or{" "}
+                              <code className="font-mono text-foreground font-semibold bg-muted px-1">
+                                Choice::BETRAY
+                              </code>.
+                            </li>
+                            <li>
+                              To compare:{" "}
+                              <code className="font-mono text-foreground bg-muted px-1">
+                                derniers_coups_strategie_adverse[-1] == Choice::COOPERATE.value
+                              </code>{" "}
+                              (past choices correspond to string values <code className="font-mono font-bold">"0"</code> or <code className="font-mono font-bold">"1"</code>).
+                            </li>
+                            <li>
+                              Number of past rounds:{" "}
+                              <code className="font-mono text-foreground bg-muted px-1">
+                                len(derniers_coups_strategie_adverse)
+                              </code>.
+                            </li>
+                            <li>
+                              Random:{" "}
+                              <code className="font-mono text-foreground bg-muted px-1">
+                                rand(0, 1)
+                              </code>.
+                            </li>
+                          </ul>
+                        </div>
+
+                        {/* Liens utiles */}
+                        <div className="flex border-t border-border pt-3 mt-1">
+                          <a
+                            href="https://rhai.rs/book/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center gap-1.5 w-full rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/95 transition-colors"
+                          >
+                            <ExternalLink className="size-3" />
+                            View Rhai Documentation
+                          </a>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <StrategyCodeEditor
                   id="strategy-code"
