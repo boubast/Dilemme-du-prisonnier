@@ -14,7 +14,7 @@ enum Choice {
 fn main() -> Result<(), Box<EvalAltResult>> {
 
     // Script Rhai à exécuter
-    let script = env::args().nth(1).expect("script manquant");
+    let script = env::args().nth(1).expect("script is missing");
 
     // Variables outils : état de la partie
     let last_strokes = env::args().nth(2).expect("last strokes are missing");
