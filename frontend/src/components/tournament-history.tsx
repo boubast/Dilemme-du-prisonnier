@@ -46,7 +46,7 @@ export default function TournamentHistory({
         ) : (
           tournaments.map((t, index) => {
             const isActive = t.id === selectedId
-            const isRecent = index === 0 // Le premier de la liste triée
+            const isRecent = index === 0
             const isPending = t.id === pendingTournamentId
 
             return (
@@ -72,21 +72,23 @@ export default function TournamentHistory({
                   >
                     {t.nom}
                   </span>
-                  {isPending ? (
-                    <Badge
-                      variant="secondary"
-                      className="h-4 shrink-0 rounded-sm border-none bg-primary/10 px-1 py-0 text-[9px] font-semibold tracking-wide text-primary uppercase"
-                    >
-                      In progress
-                    </Badge>
-                  ) : isRecent ? (
-                    <Badge
-                      variant="secondary"
-                      className="h-4 shrink-0 rounded-sm border-none bg-primary/10 px-1 py-0 text-[9px] font-semibold tracking-wide text-primary uppercase"
-                    >
-                      Recent
-                    </Badge>
-                  ) : null}
+                  <div className="flex items-center gap-1">
+                    {isPending ? (
+                      <Badge
+                        variant="secondary"
+                        className="h-4 shrink-0 rounded-sm border-none bg-primary/10 px-1 py-0 text-[9px] font-semibold tracking-wide text-primary uppercase"
+                      >
+                        En cours
+                      </Badge>
+                    ) : isRecent ? (
+                      <Badge
+                        variant="secondary"
+                        className="h-4 shrink-0 rounded-sm border-none bg-primary/10 px-1 py-0 text-[9px] font-semibold tracking-wide text-primary uppercase"
+                      >
+                        Récent
+                      </Badge>
+                    ) : null}
+                  </div>
                 </div>
                 <div className="mt-1 flex items-center gap-2">
                   <p className="text-[10px] leading-none text-muted-foreground">

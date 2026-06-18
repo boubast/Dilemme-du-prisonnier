@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Search, X, Play, Plus } from "lucide-react"
-import type { Couts, Tournoi, TournamentConfig } from "@/type"
+import type { Couts, Tournoi, TournamentConfig, TournamentType } from "@/type"
 import { useStrategy } from "@/hooks/useStrategy"
 const DEFAULT_PAYOFFS: Couts = {
   tentation: 5,
@@ -24,12 +24,14 @@ import { TOAST_STYLE } from "@/constants"
 import { ApiError } from "@/api/apiError"
 
 interface TournamentConfigProps {
+  type: TournamentType
   onTournamentCreated: (tournoi: Tournoi) => void | Promise<void>
   onTournamentCreating: (tournoi: Tournoi) => void
   onTournamentCreationFailed: () => void
 }
 
 export default function TournamentConfig({
+  type,
   onTournamentCreated,
   onTournamentCreating,
   onTournamentCreationFailed,
@@ -38,10 +40,12 @@ export default function TournamentConfig({
     strategies: allStrategies,
     reload: loadStrategies,
     removeStrategy,
+    setTypeTournoi,
   } = useStrategy(true)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [search, setSearch] = useState("")
   const [nbIterations, setNbIterations] = useState(200)
+  const [durationSeconds, setDurationSeconds] = useState(10)
   const [payoffs, setPayoffs] = useState<Couts>(DEFAULT_PAYOFFS)
   const [isLoading, setIsLoading] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
@@ -54,12 +58,24 @@ export default function TournamentConfig({
     null
   )
 
-  // Stratégies sélectionnées (objets complets)
+  // Sync hook's strategy type filter with the tournament configuration type
+  useEffect(() => {
+    setTypeTournoi(type)
+  }, [type, setTypeTournoi])
+
+  // Reset selections when game mode changes
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSelectedIds([])
+    setSearch("")
+  }, [type])
+
+  // Selected strategies
   const selectedStrategies = allStrategies.filter((s) =>
     selectedIds.includes(s.id)
   )
 
-  // Stratégies disponibles = non sélectionnées + filtre recherche
+  // Available strategies (not selected + match search)
   const availableStrategies = allStrategies.filter(
     (s) =>
       !selectedIds.includes(s.id) &&
@@ -134,15 +150,18 @@ export default function TournamentConfig({
   async function handleSubmit() {
     if (selectedIds.length < 2) return
     const config: TournamentConfig = {
+      type,
       strategies_ids: selectedIds,
-      nb_iterations: nbIterations,
-      payoffs,
+      nb_iterations: type === "Classique" ? nbIterations : undefined,
+      duration_seconds: type === "Multi" ? durationSeconds : undefined,
+      payoffs: type === "Classique" ? payoffs : undefined,
     }
     const pendingTournoi: Tournoi = {
       id: "tournoi-en-calcul",
       nom: `Tournament - ${selectedIds.length} strategies`,
       parties: [],
-      nb_iterations: nbIterations,
+      nb_iterations: type === "Classique" ? nbIterations : 0,
+      duration_seconds: type === "Multi" ? durationSeconds : undefined,
       couts: payoffs,
       date_creation: new Date().toLocaleDateString("fr-FR"),
       meilleure_strategie: "",
@@ -163,8 +182,8 @@ export default function TournamentConfig({
       const message =
         e instanceof ApiError
           ? e.friendlyMessage
-          : (e as Error).message || "Unknown error"
-      toast.error("Could not start the tournament: " + message, {
+          : (e as Error).message || "Erreur inconnue"
+      toast.error("Error launching tournament: " + message, {
         style: TOAST_STYLE.error,
       })
       onTournamentCreationFailed()
@@ -174,15 +193,14 @@ export default function TournamentConfig({
   }
 
   return (
-    <div className="flex items-start gap-5">
+    <div className="flex min-h-[75vh] items-start gap-5">
       {/* ── Sélection des stratégies ── */}
       <section
         className="flex min-h-0 w-2/3 flex-col gap-3 overflow-hidden rounded-xl border border-border bg-card p-4"
-        style={
-          settingsHeight
-            ? { height: settingsHeight, maxHeight: settingsHeight }
-            : undefined
-        }
+        style={{
+          height: settingsHeight ? `max(${settingsHeight}px, 75vh)` : "75vh",
+          maxHeight: settingsHeight ? `max(${settingsHeight}px, 75vh)` : "75vh",
+        }}
       >
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -195,6 +213,7 @@ export default function TournamentConfig({
               {selectedIds.length === 1 ? "y" : "ies"}
             </p>
           </div>
+
           <Button
             type="button"
             variant="outline"
@@ -224,7 +243,7 @@ export default function TournamentConfig({
           <input
             ref={searchRef}
             type="text"
-            placeholder="Search for a strategy..."
+            placeholder={"Search strategy..."}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className={cn(
@@ -276,27 +295,34 @@ export default function TournamentConfig({
       <div ref={settingsRef} className="flex w-1/3 flex-col gap-5">
         {/* ── Paramètres ── */}
         <section className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4">
-          <h2 className="text-sm font-semibold text-foreground">Settings</h2>
+          <h2 className="text-sm font-semibold text-foreground">Parameters</h2>
 
-          {/* Nombre d'itérations */}
+          {/* Nombre d'itérations / seconds */}
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
               <label
                 htmlFor="nb-iterations"
                 className="text-xs font-medium text-foreground"
               >
-                Number of iterations
+                {type === "Classique"
+                  ? "Number of iterations"
+                  : "Duration (seconds)"}
               </label>
             </div>
             <input
               id="nb-iterations"
               type="number"
               min={1}
-              max={10000}
-              value={nbIterations}
-              onChange={(e) =>
-                setNbIterations(Math.max(1, Number(e.target.value)))
-              }
+              max={type === "Classique" ? 10000 : 3600}
+              value={type === "Classique" ? nbIterations : durationSeconds}
+              onChange={(e) => {
+                const val = Math.max(1, Number(e.target.value))
+                if (type === "Classique") {
+                  setNbIterations(val)
+                } else {
+                  setDurationSeconds(val)
+                }
+              }}
               className={cn(
                 "w-full rounded-md border border-input bg-background px-3 py-1.5 font-mono text-sm",
                 "focus:border-ring focus:ring-2 focus:ring-ring/50 focus:outline-none",
@@ -310,45 +336,47 @@ export default function TournamentConfig({
         </section>
 
         {/* ── Configuration des coûts ── */}
-        <section className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4">
-          <div>
-            <h2 className="text-sm font-semibold text-foreground">
-              Payoff configuration
-            </h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Dilemma payoff matrix
-            </p>
-          </div>
+        {type === "Classique" && (
+          <section className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4">
+            <div>
+              <h2 className="text-sm font-semibold text-foreground">
+                Payoff configuration
+              </h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Dilemma payoff matrix
+              </p>
+            </div>
 
-          <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-            <PayoffInput
-              label="Temptation"
-              sublabel="I betray, they cooperate"
-              value={payoffs.tentation}
-              onChange={(v) => updatePayoff("tentation", v)}
-            />
-            <PayoffInput
-              label="Reward"
-              sublabel="Mutual cooperation"
-              value={payoffs.recompense}
-              onChange={(v) => updatePayoff("recompense", v)}
-            />
-            <PayoffInput
-              label="Punishment"
-              sublabel="Mutual betrayal"
-              value={payoffs.punition}
-              onChange={(v) => updatePayoff("punition", v)}
-            />
-            <PayoffInput
-              label="Sucker"
-              sublabel="I cooperate, they betray"
-              value={payoffs.dupe}
-              onChange={(v) => updatePayoff("dupe", v)}
-            />
-          </div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+              <PayoffInput
+                label="Temptation"
+                sublabel="I betray, they cooperate"
+                value={payoffs.tentation}
+                onChange={(v) => updatePayoff("tentation", v)}
+              />
+              <PayoffInput
+                label="Reward"
+                sublabel="Mutual cooperation"
+                value={payoffs.recompense}
+                onChange={(v) => updatePayoff("recompense", v)}
+              />
+              <PayoffInput
+                label="Punishment"
+                sublabel="Mutual betrayal"
+                value={payoffs.punition}
+                onChange={(v) => updatePayoff("punition", v)}
+              />
+              <PayoffInput
+                label="Sucker"
+                sublabel="I cooperate, they betray"
+                value={payoffs.dupe}
+                onChange={(v) => updatePayoff("dupe", v)}
+              />
+            </div>
 
-          <PayoffMatrix payoffs={payoffs} />
-        </section>
+            <PayoffMatrix payoffs={payoffs} />
+          </section>
+        )}
 
         {/* ── Lancer le tournoi ── */}
         <Button
@@ -358,7 +386,7 @@ export default function TournamentConfig({
           className="w-full gap-2 font-semibold"
         >
           <Play className="size-4" />
-          {isLoading ? "Starting..." : "Start tournament"}
+          {isLoading ? "Launching..." : "Launch tournament"}
         </Button>
       </div>
 
@@ -367,6 +395,7 @@ export default function TournamentConfig({
         onOpenChange={setIsDialogOpen}
         strategyId={editingStrategyId}
         onSave={loadStrategies}
+        defaultType={type}
       />
     </div>
   )

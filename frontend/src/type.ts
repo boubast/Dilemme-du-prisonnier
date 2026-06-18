@@ -1,3 +1,5 @@
+export type TournamentType = "Classique" | "Multi"
+
 export type Strategie = {
   id: string
   nom: string
@@ -31,14 +33,17 @@ type VND = {
 export type Tournoi = {
   id: string
   nom: string
+  type?: TournamentType
   parties: Partie[]
   nb_iterations: number
+  duration_seconds?: number
   couts: Couts
   date_creation: string
   meilleure_strategie: string
   strategies: Strategie[]
   resultats: Record<string, VND>
   scores_totaux: Record<string, number>
+  multi_stats?: Record<string, { cooperations: number; betrayal: number }>
 }
 
 export type Iteration = {
@@ -58,9 +63,11 @@ export type Couts = {
 }
 
 export type TournamentConfig = {
+  type: TournamentType
   strategies_ids: string[]
-  nb_iterations: number
-  payoffs: Couts
+  nb_iterations?: number
+  duration_seconds?: number
+  payoffs?: Couts
 }
 
 export interface HelpBlock {

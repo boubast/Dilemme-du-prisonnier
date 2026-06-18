@@ -68,16 +68,24 @@ export async function createTournament(
   config: TournamentConfig
 ): Promise<Tournoi> {
   try {
-    const body = {
-      strategie_ids: config.strategies_ids.map(Number),
-      nb_iterations: config.nb_iterations,
-      cout_coop_coop: config.payoffs.recompense,
-      cout_coop_trahi: config.payoffs.dupe,
-      cout_trahi_coop: config.payoffs.tentation,
-      cout_trahi_trahi: config.payoffs.punition,
-    }
+    const isMulti = config.type === "Multi"
+    const url = isMulti ? `${API_URL}/tournament/launch_multi` : `${API_URL}/tournament/launch`
 
-    const response = await fetch(`${API_URL}/tournament/launch`, {
+    const body = isMulti
+      ? {
+          strategie_ids: config.strategies_ids.map(Number),
+          duree_secondes: config.duration_seconds,
+        }
+      : {
+          strategie_ids: config.strategies_ids.map(Number),
+          nb_iterations: config.nb_iterations,
+          cout_coop_coop: config.payoffs?.recompense,
+          cout_coop_trahi: config.payoffs?.dupe,
+          cout_trahi_coop: config.payoffs?.tentation,
+          cout_trahi_trahi: config.payoffs?.punition,
+        }
+
+    const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

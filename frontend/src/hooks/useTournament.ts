@@ -7,8 +7,6 @@ import {
   createTournament,
 } from "@/api/tournament"
 
-//TODO : Type de tournoi
-
 export function useTournament(
   tournamentId: string | null = null,
   autoLoadList = false
@@ -25,6 +23,7 @@ export function useTournament(
       setTournaments(list)
     } catch (e) {
       console.error("Could not retrieve tournaments:", e)
+      setTournaments([])
     } finally {
       setLoading(false)
     }
@@ -49,7 +48,19 @@ export function useTournament(
     const loadActive = async () => {
       setActiveLoading(true)
       try {
-        const t = await fetchTournamentById(tournamentId, "Classique")
+        let type: "Classique" | "Multi" = "Classique"
+        let found = tournaments.find((t) => t.id === tournamentId)
+        if (!found) {
+          const list = await fetchTournaments()
+          setTournaments(list)
+          found = list.find((t) => t.id === tournamentId)
+        }
+
+        if (found && found.type) {
+          type = found.type
+        }
+
+        const t = await fetchTournamentById(tournamentId, type)
         if (ignore) return
 
         setActiveTournament(t || null)
@@ -67,11 +78,14 @@ export function useTournament(
     return () => {
       ignore = true
     }
-  }, [tournamentId])
+  }, [tournamentId, tournaments])
 
-  const getTournament = useCallback(async (id: string) => {
-    return await fetchTournamentById(id, "Classique")
-  }, [])
+  const getTournament = useCallback(
+    async (id: string, type: "Classique" | "Multi" = "Classique") => {
+      return await fetchTournamentById(id, type)
+    },
+    []
+  )
 
   const addTournament = useCallback(
     async (config: TournamentConfig) => {

@@ -20,21 +20,24 @@ from app.models.types.type_tournoi import Type_tournoi
 router = APIRouter(prefix="/strategy", tags=["strategy"])
 
 
-def validate_rhai_syntax(script: str) -> str | None:
-    result = MoteurChoix().choix_classique(script, "[]", "[]", "1", "1", "1", "1")
+def validate_rhai_syntax(script: str,type_tournoi: Type_tournoi) -> str | None:
+    if type_tournoi == Type_tournoi.Classique:
+        result = MoteurChoix().choix_classique(script, "[]", "[]", "1", "1", "1", "1")
+    elif type_tournoi == Type_tournoi.Multi:
+        result = MoteurChoix().choix_multi(script, "[]", "[[]]", "0")
     if result.startswith("Erreur:"):
         return result.removeprefix("Erreur:").strip()
     return None
 
 
-@router.get("/{type_tournoi}", response_model=list[StrategieListRead])
+@router.get("/type/{type_tournoi}", response_model=list[StrategieListRead])
 def list_strategies(type_tournoi:Type_tournoi,db: Session = Depends(get_db)) -> list[Strategie]:
     return list(db.scalars(select(Strategie).where(Strategie.type_strategie==type_tournoi).order_by(Strategie.id_strategie)))
 
 
 @router.post("/validate-syntax", response_model=StrategieSyntaxValidationRead)
 def validate_strategie_syntax(payload: StrategieSyntaxValidationRequest) -> StrategieSyntaxValidationRead:
-    error = validate_rhai_syntax(payload.script_rhai)
+    error = validate_rhai_syntax(payload.script_rhai,payload.type_tournoi)
     return StrategieSyntaxValidationRead(valid=error is None, error=error)
 
 
@@ -48,7 +51,7 @@ def get_strategie(strategie_id: int, db: Session = Depends(get_db)) -> Strategie
 
 @router.post("", response_model=StrategieDetailRead, status_code=status.HTTP_201_CREATED)
 def create_strategie(payload: StrategieCreate, db: Session = Depends(get_db)) -> Strategie:
-    syntax_error = validate_rhai_syntax(payload.script_rhai)
+    syntax_error = validate_rhai_syntax(payload.script_rhai,payload.type_strategie)
     if syntax_error:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=syntax_error)
 
@@ -66,7 +69,7 @@ def update_strategie(strategie_id: int, payload: StrategieUpdate, db: Session = 
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Strategie introuvable")
 
     if payload.script_rhai is not None:
-        syntax_error = validate_rhai_syntax(payload.script_rhai)
+        syntax_error = validate_rhai_syntax(payload.script_rhai,payload.type_strategie)
         if syntax_error:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=syntax_error)
 

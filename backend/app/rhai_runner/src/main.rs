@@ -75,10 +75,10 @@ mod choice_enum_module {
 
     /// Return the inner value.
     #[rhai_fn(global, get = "value", pure)]
-    pub fn get_value(my_enum: &mut Choice) -> String {
+    pub fn get_value(my_enum: &mut Choice) -> Dynamic {
         match my_enum {
-            Choice::Cooperate => "0".to_string(),
-            Choice::Betray => "1".to_string(),
+            Choice::Cooperate => 0.into(),
+            Choice::Betray => 1.into(),
         }
     }
 

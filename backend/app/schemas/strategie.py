@@ -57,6 +57,7 @@ class StrategieDetailRead(StrategieBase):
 
 class StrategieSyntaxValidationRequest(BaseModel):
     script_rhai: str = Field(..., min_length=1)
+    type_tournoi: Type_tournoi = Field(...)
 
 
 class StrategieSyntaxValidationRead(BaseModel):

@@ -5,7 +5,7 @@ export type StrategieDTO = {
   nom: string
   explication: string
   script_rhai?: string
-  type: string
+  type_strategie: string
 }
 
 export const mapStrategieDTOToStrategie = (dto: StrategieDTO): Strategie => {
@@ -14,6 +14,6 @@ export const mapStrategieDTOToStrategie = (dto: StrategieDTO): Strategie => {
     nom: dto.nom,
     explication: dto.explication,
     script_rhai: dto.script_rhai || "",
-    type: dto.type
+    type: dto.type_strategie
   }
 }
