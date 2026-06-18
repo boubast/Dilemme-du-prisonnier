@@ -336,45 +336,47 @@ export default function TournamentConfig({
         </section>
 
         {/* ── Configuration des coûts ── */}
-        <section className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4">
-          <div>
-            <h2 className="text-sm font-semibold text-foreground">
-              Payoff configuration
-            </h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Dilemma payoff matrix
-            </p>
-          </div>
+        {type === "Classique" && (
+          <section className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4">
+            <div>
+              <h2 className="text-sm font-semibold text-foreground">
+                Payoff configuration
+              </h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Dilemma payoff matrix
+              </p>
+            </div>
 
-          <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-            <PayoffInput
-              label="Temptation"
-              sublabel="I betray, they cooperate"
-              value={payoffs.tentation}
-              onChange={(v) => updatePayoff("tentation", v)}
-            />
-            <PayoffInput
-              label="Reward"
-              sublabel="Mutual cooperation"
-              value={payoffs.recompense}
-              onChange={(v) => updatePayoff("recompense", v)}
-            />
-            <PayoffInput
-              label="Punishment"
-              sublabel="Mutual betrayal"
-              value={payoffs.punition}
-              onChange={(v) => updatePayoff("punition", v)}
-            />
-            <PayoffInput
-              label="Sucker"
-              sublabel="I cooperate, they betray"
-              value={payoffs.dupe}
-              onChange={(v) => updatePayoff("dupe", v)}
-            />
-          </div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+              <PayoffInput
+                label="Temptation"
+                sublabel="I betray, they cooperate"
+                value={payoffs.tentation}
+                onChange={(v) => updatePayoff("tentation", v)}
+              />
+              <PayoffInput
+                label="Reward"
+                sublabel="Mutual cooperation"
+                value={payoffs.recompense}
+                onChange={(v) => updatePayoff("recompense", v)}
+              />
+              <PayoffInput
+                label="Punishment"
+                sublabel="Mutual betrayal"
+                value={payoffs.punition}
+                onChange={(v) => updatePayoff("punition", v)}
+              />
+              <PayoffInput
+                label="Sucker"
+                sublabel="I cooperate, they betray"
+                value={payoffs.dupe}
+                onChange={(v) => updatePayoff("dupe", v)}
+              />
+            </div>
 
-          <PayoffMatrix payoffs={payoffs} />
-        </section>
+            <PayoffMatrix payoffs={payoffs} />
+          </section>
+        )}
 
         {/* ── Lancer le tournoi ── */}
         <Button
