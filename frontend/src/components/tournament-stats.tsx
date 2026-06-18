@@ -26,11 +26,10 @@ export default function TournamentStats({
         <LoaderCircle className="size-6 animate-spin text-primary" />
         <div>
           <p className="text-sm font-medium text-foreground">
-            Calcul du tournoi en cours...
+            Tournament in progress...
           </p>
           <p className="mt-1 max-w-sm text-xs text-muted-foreground">
-            Les statistiques s'afficheront dès que toutes les parties seront
-            terminées.
+            Statistics will appear once all matches have finished.
           </p>
         </div>
       </section>
@@ -57,11 +56,10 @@ export default function TournamentStats({
     return (
       <section className="flex min-h-120 w-2/3 flex-col items-center justify-center gap-2 rounded-xl border border-border bg-card p-8 text-center text-muted-foreground">
         <p className="text-sm font-medium">
-          Aucun tournoi sélectionné ou disponible.
+          No tournament selected or available.
         </p>
         <p className="mt-1 max-w-xs text-xs text-muted-foreground">
-          Configurez et lancez un tournoi ci-dessus pour générer des
-          statistiques.
+          Configure and start a tournament above to generate statistics.
         </p>
       </section>
     )
@@ -81,13 +79,13 @@ export default function TournamentStats({
             variant="secondary"
             className="h-5 border-none bg-muted px-2 text-[10px] font-medium text-muted-foreground"
           >
-            {tournament.nb_iterations} itérations
+            {tournament.nb_iterations} iterations
           </Badge>
           <Badge
             variant="secondary"
             className="h-5 border-none bg-muted px-2 text-[10px] font-medium text-muted-foreground"
           >
-            {tournament.strategies.length} stratégies
+            {tournament.strategies.length} strategies
           </Badge>
         </div>
       </div>
@@ -102,19 +100,19 @@ export default function TournamentStats({
             value="results"
             className="cursor-pointer px-3 py-1 text-xs"
           >
-            Résultats
+            Results
           </TabsTrigger>
           <TabsTrigger
             value="matches"
             className="cursor-pointer px-3 py-1 text-xs"
           >
-            Parties
+            Matches
           </TabsTrigger>
           <TabsTrigger
             value="matrix"
             className="cursor-pointer px-3 py-1 text-xs"
           >
-            Matrice
+            Matrix
           </TabsTrigger>
           <TabsTrigger
             value="insights"

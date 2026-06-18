@@ -11,13 +11,10 @@ export default function TournamentMatchesTab({
   return (
     <div className="flex animate-in flex-col gap-4 py-2 duration-150 fade-in">
       <div>
-        <h3 className="text-sm font-semibold text-foreground">
-          Liste des parties
-        </h3>
+        <h3 className="text-sm font-semibold text-foreground">Match list</h3>
         <p className="mt-0.5 text-xs text-muted-foreground">
           {tournoi.parties.length} match
-          {tournoi.parties.length > 1 ? "s" : ""} joué
-          {tournoi.parties.length > 1 ? "s" : ""}
+          {tournoi.parties.length === 1 ? "" : "es"} played
         </p>
       </div>
 
@@ -35,7 +32,7 @@ export default function TournamentMatchesTab({
             >
               {/* Numéro du Match */}
               <span className="shrink-0 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
-                Partie {index + 1}
+                Match {index + 1}
               </span>
 
               {/* Matchup */}

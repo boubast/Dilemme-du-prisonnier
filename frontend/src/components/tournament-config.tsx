@@ -81,22 +81,21 @@ export default function TournamentConfig({
 
   const handleDeleteStrategy = useCallback(
     async (id: string) => {
-      if (confirm("Voulez-vous vraiment supprimer cette stratégie ?")) {
+      if (confirm("Are you sure you want to delete this strategy?")) {
         try {
           await removeStrategy(id)
           setSelectedIds((prev) => prev.filter((sid) => sid !== id))
-          toast.success("Stratégie supprimée avec succès.", {
+          toast.success("Strategy deleted successfully.", {
             style: TOAST_STYLE.success,
           })
         } catch (e: unknown) {
           const message =
             e instanceof ApiError
               ? e.friendlyMessage
-              : (e as Error).message || "Erreur inconnue"
-          toast.error(
-            "Erreur lors de la suppression de la stratégie : " + message,
-            { style: TOAST_STYLE.error }
-          )
+              : (e as Error).message || "Unknown error"
+          toast.error("Could not delete the strategy: " + message, {
+            style: TOAST_STYLE.error,
+          })
         }
       }
     },
@@ -141,7 +140,7 @@ export default function TournamentConfig({
     }
     const pendingTournoi: Tournoi = {
       id: "tournoi-en-calcul",
-      nom: `Tournoi - ${selectedIds.length} stratégies`,
+      nom: `Tournament - ${selectedIds.length} strategies`,
       parties: [],
       nb_iterations: nbIterations,
       couts: payoffs,
@@ -156,16 +155,16 @@ export default function TournamentConfig({
     onTournamentCreating(pendingTournoi)
     try {
       const tournoi = await createTournament(config)
-      toast.success("Tournoi terminé avec succès !", {
-          style: TOAST_STYLE.success,
+      toast.success("Tournament completed successfully!", {
+        style: TOAST_STYLE.success,
       })
       await onTournamentCreated(tournoi)
     } catch (e: unknown) {
       const message =
         e instanceof ApiError
           ? e.friendlyMessage
-          : (e as Error).message || "Erreur inconnue"
-      toast.error("Erreur lors du lancement du tournoi : " + message, {
+          : (e as Error).message || "Unknown error"
+      toast.error("Could not start the tournament: " + message, {
         style: TOAST_STYLE.error,
       })
       onTournamentCreationFailed()
@@ -189,11 +188,11 @@ export default function TournamentConfig({
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-sm font-semibold text-foreground">
-              Sélectionner les stratégies
+              Select strategies
             </h2>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              {selectedIds.length}/{allStrategies.length} sélectionnée
-              {selectedIds.length > 1 ? "s" : ""}
+              {selectedIds.length}/{allStrategies.length} selected strateg
+              {selectedIds.length === 1 ? "y" : "ies"}
             </p>
           </div>
           <Button
@@ -204,7 +203,7 @@ export default function TournamentConfig({
             className="cursor-pointer border-primary text-primary hover:bg-primary/10"
           >
             <Plus className="size-3.5" />
-            Ajouter une stratégie
+            Add a strategy
           </Button>
         </div>
 
@@ -225,7 +224,7 @@ export default function TournamentConfig({
           <input
             ref={searchRef}
             type="text"
-            placeholder="Rechercher une stratégie…"
+            placeholder="Search for a strategy..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className={cn(
@@ -264,8 +263,8 @@ export default function TournamentConfig({
         ) : (
           <p className="py-4 text-center text-xs text-muted-foreground">
             {allStrategies.length === selectedIds.length
-              ? "Toutes les stratégies sont sélectionnées."
-              : "Aucune stratégie ne correspond à votre recherche."}
+              ? "All strategies are selected."
+              : "No strategy matches your search."}
           </p>
         )}
 
@@ -277,7 +276,7 @@ export default function TournamentConfig({
       <div ref={settingsRef} className="flex w-1/3 flex-col gap-5">
         {/* ── Paramètres ── */}
         <section className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4">
-          <h2 className="text-sm font-semibold text-foreground">Paramètres</h2>
+          <h2 className="text-sm font-semibold text-foreground">Settings</h2>
 
           {/* Nombre d'itérations */}
           <div className="flex flex-col gap-1.5">
@@ -286,7 +285,7 @@ export default function TournamentConfig({
                 htmlFor="nb-iterations"
                 className="text-xs font-medium text-foreground"
               >
-                Nombre d'itérations
+                Number of iterations
               </label>
             </div>
             <input
@@ -305,7 +304,7 @@ export default function TournamentConfig({
               )}
             />
             <p className="text-[11px] text-muted-foreground">
-              Tours joués pour chaque paire de stratégies.
+              Rounds played for each pair of strategies.
             </p>
           </div>
         </section>
@@ -314,35 +313,35 @@ export default function TournamentConfig({
         <section className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4">
           <div>
             <h2 className="text-sm font-semibold text-foreground">
-              Configuration des coûts
+              Payoff configuration
             </h2>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Grille de points du dilemme
+              Dilemma payoff matrix
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-x-4 gap-y-3">
             <PayoffInput
-              label="Tentation"
-              sublabel="Je trahis, il coopère"
+              label="Temptation"
+              sublabel="I betray, they cooperate"
               value={payoffs.tentation}
               onChange={(v) => updatePayoff("tentation", v)}
             />
             <PayoffInput
-              label="Récompense"
-              sublabel="Coopération mutuelle"
+              label="Reward"
+              sublabel="Mutual cooperation"
               value={payoffs.recompense}
               onChange={(v) => updatePayoff("recompense", v)}
             />
             <PayoffInput
-              label="Punition"
-              sublabel="Trahison mutuelle"
+              label="Punishment"
+              sublabel="Mutual betrayal"
               value={payoffs.punition}
               onChange={(v) => updatePayoff("punition", v)}
             />
             <PayoffInput
-              label="Dupe"
-              sublabel="Je coopère, il trahit"
+              label="Sucker"
+              sublabel="I cooperate, they betray"
               value={payoffs.dupe}
               onChange={(v) => updatePayoff("dupe", v)}
             />
@@ -359,7 +358,7 @@ export default function TournamentConfig({
           className="w-full gap-2 font-semibold"
         >
           <Play className="size-4" />
-          {isLoading ? "Lancement…" : "Lancer le tournoi"}
+          {isLoading ? "Starting..." : "Start tournament"}
         </Button>
       </div>
 

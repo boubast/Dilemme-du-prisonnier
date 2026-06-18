@@ -12,7 +12,7 @@ export function MainLayout() {
             to="/"
             className="flex items-center gap-2 text-lg font-bold tracking-tight text-foreground transition-colors hover:text-primary"
           >
-            Dilemme du Prisonnier
+            Prisoner's Dilemma
           </NavLink>
           <ThemeToggle />
         </div>

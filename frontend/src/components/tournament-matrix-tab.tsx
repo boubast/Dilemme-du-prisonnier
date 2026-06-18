@@ -35,11 +35,11 @@ export default function TournamentMatrixTab({
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-sm font-semibold text-foreground">
-            Matrice des confrontations
+            Matchup matrix
           </h3>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Scores individuels obtenus par la stratégie en ligne (Y) contre la
-            stratégie en colonne (X).
+            Individual scores earned by the row strategy (Y) against the column
+            strategy (X).
           </p>
         </div>
       </div>
@@ -51,7 +51,7 @@ export default function TournamentMatrixTab({
             <tr className="border-b border-border bg-muted/20">
               {/* Case vide en haut à gauche */}
               <th className="sticky left-0 z-20 max-w-45 min-w-35 truncate border-r border-border bg-muted px-3 py-3 font-semibold tracking-wider text-muted-foreground uppercase">
-                Ligne (Y) \ Col (X)
+                Row (Y) \ Col (X)
               </th>
               {/* En-têtes des colonnes (Stratégies) */}
               {sortedStrategies.map((s) => (
@@ -126,7 +126,7 @@ export default function TournamentMatrixTab({
                             ? "bg-muted/30 text-muted-foreground hover:bg-muted/50"
                             : "bg-red-500/5 text-red-600 hover:bg-red-500/10 dark:text-red-400"
                       )}
-                      title={`${y.nom} (Y) vs ${x.nom} (X)\nScore Y : ${scoreY}\nScore X : ${scoreX}\nRésultat : ${won ? "Victoire" : isTie ? "Match Nul" : "Défaite"}`}
+                      title={`${y.nom} (Y) vs ${x.nom} (X)\nY score: ${scoreY}\nX score: ${scoreX}\nResult: ${won ? "Win" : isTie ? "Draw" : "Loss"}`}
                     >
                       {scoreY}
                     </td>

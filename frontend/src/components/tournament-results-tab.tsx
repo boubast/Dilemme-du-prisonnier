@@ -32,10 +32,10 @@ export default function TournamentResultsTab({
     <div className="flex animate-in flex-col gap-4 py-2 duration-150 fade-in">
       <div>
         <h3 className="text-sm font-semibold text-foreground">
-          Classement des stratégies
+          Strategy rankings
         </h3>
         <p className="mt-0.5 text-xs text-muted-foreground">
-          Score cumulé sur l'ensemble des parties
+          Cumulative score across all matches
         </p>
       </div>
 
@@ -44,9 +44,9 @@ export default function TournamentResultsTab({
           <thead>
             <tr className="border-b border-border bg-muted/20 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
               <th className="w-12 px-4 py-3 text-center">#</th>
-              <th className="px-4 py-3">Stratégie</th>
-              <th className="px-4 py-3 text-right">Score total</th>
-              <th className="w-32 px-4 py-3 text-center">V / N / D</th>
+              <th className="px-4 py-3">Strategy</th>
+              <th className="px-4 py-3 text-right">Total score</th>
+              <th className="w-32 px-4 py-3 text-center">W / D / L</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">

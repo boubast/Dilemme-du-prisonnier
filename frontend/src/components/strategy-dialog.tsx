@@ -67,8 +67,8 @@ export function StrategyDialog({
         return
       }
     } catch (error) {
-      console.error("Erreur lors de la validation Rhai :", error)
-      toast.error("Impossible de valider la syntaxe Rhai.")
+      console.error("Rhai validation failed:", error)
+      toast.error("Could not validate the Rhai syntax.")
       return
     } finally {
       setIsValidatingSyntax(false)
@@ -77,8 +77,8 @@ export function StrategyDialog({
       await save()
       toast.success(
         strategyId
-          ? "Stratégie modifiée avec succès."
-          : "Stratégie créée avec succès.",
+          ? "Strategy updated successfully."
+          : "Strategy created successfully.",
         { style: TOAST_STYLE.success }
       )
       onSave()
@@ -87,11 +87,10 @@ export function StrategyDialog({
       const message =
         err instanceof ApiError
           ? err.friendlyMessage
-          : (err as Error).message || "Erreur inconnue"
-      toast.error(
-        `Erreur lors de l'enregistrement de la stratégie : ${message}`,
-        { style: TOAST_STYLE.error }
-      )
+          : (err as Error).message || "Unknown error"
+      toast.error(`Could not save the strategy: ${message}`, {
+        style: TOAST_STYLE.error,
+      })
     }
   }
 
@@ -110,12 +109,12 @@ export function StrategyDialog({
           {/* ── Header ── */}
           <div className="shrink-0 border-b border-border px-6 py-4">
             <h2 className="text-base font-semibold text-foreground">
-              {strategyId ? "Modifier la stratégie" : "Nouvelle stratégie"}
+              {strategyId ? "Edit strategy" : "New strategy"}
             </h2>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {strategyId
-                ? "Modifiez le nom, la description ou le script Rhai de la stratégie."
-                : "Donnez un nom, une description et écrivez votre script Rhai."}
+                ? "Edit the strategy name, description, or Rhai script."
+                : "Enter a name and description, then write your Rhai script."}
             </p>
           </div>
 
@@ -129,7 +128,7 @@ export function StrategyDialog({
                   htmlFor="strategy-name"
                   className="text-sm font-medium text-foreground"
                 >
-                  Nom
+                  Name
                 </label>
                 <input
                   id="strategy-name"
@@ -158,7 +157,7 @@ export function StrategyDialog({
                 <input
                   id="strategy-desc"
                   type="text"
-                  placeholder="En une phrase, que fait cette stratégie ?"
+                  placeholder="In one sentence, what does this strategy do?"
                   value={explication}
                   onChange={(e) => setExplication(e.target.value)}
                   required
@@ -336,11 +335,15 @@ export function StrategyDialog({
                   </p>
                 )}
                 <p className="text-[11px] text-muted-foreground">
-                  La fonction doit retourner{" "}
-                  <code className="rounded bg-muted px-1 font-mono">Choice::COOPERATE</code>{" "}
-                  (coopérer) ou{" "}
-                  <code className="rounded bg-muted px-1 font-mono">Choice::BETRAY</code>{" "}
-                  (trahir).
+                  The function must return{" "}
+                  <code className="rounded bg-muted px-1 font-mono">
+                    Choice::COOPERATE
+                  </code>{" "}
+                  (cooperate) or{" "}
+                  <code className="rounded bg-muted px-1 font-mono">
+                    Choice::BETRAY
+                  </code>{" "}
+                  (betray).
                 </p>
               </div>
             </div>
@@ -351,10 +354,10 @@ export function StrategyDialog({
               <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-4">
                 <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
                   <Lightbulb className="size-4 text-yellow-500" />
-                  Blocs d'aide
+                  Help blocks
                 </div>
                 <p className="text-[11px] leading-relaxed text-muted-foreground">
-                  Cliquez pour insérer un extrait de code Rhai courant.
+                  Click to insert a common Rhai code snippet.
                 </p>
 
                 <div className="flex flex-col gap-2">
@@ -389,22 +392,24 @@ export function StrategyDialog({
                     variant="outline"
                     className="flex-1 justify-center"
                   >
-                    Annuler
+                    Cancel
                   </Button>
                 </DialogClose>
                 <Button
                   type="submit"
                   disabled={
-                    isLoading || isValidatingSyntax || Boolean(displayedSyntaxError)
+                    isLoading ||
+                    isValidatingSyntax ||
+                    Boolean(displayedSyntaxError)
                   }
                   className="flex-1 justify-center gap-1.5"
                 >
                   <Save className="size-3.5" />
                   {isValidatingSyntax
-                    ? "Validation..."
+                    ? "Validating..."
                     : isLoading
-                      ? "Enregistrement..."
-                      : "Enregistrer"}
+                      ? "Saving..."
+                      : "Save"}
                 </Button>
               </div>
             </aside>

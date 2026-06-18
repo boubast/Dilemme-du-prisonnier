@@ -96,7 +96,7 @@ function formatRhaiScriptForEditor(script: string) {
       continue
     }
 
-    if (char === "\"" || char === "'") {
+    if (char === '"' || char === "'") {
       quote = char
       write(char)
       continue
@@ -159,7 +159,7 @@ export function useStrategy(
       const list = await fetchStrategies(typeTournoi)
       setStrategies(list)
     } catch (e) {
-      console.error("Erreur lors de la récupération des stratégies :", e)
+      console.error("Could not retrieve strategies:", e)
     } finally {
       setLoading(false)
     }
@@ -188,7 +188,7 @@ export function useStrategy(
             setTypeTournoi(s.type)
           }
         } catch (error) {
-          console.error("Erreur lors du chargement de la stratégie :", error)
+          console.error("Could not load the strategy:", error)
         } finally {
           setLoading(false)
         }
@@ -237,7 +237,7 @@ export function useStrategy(
   // Sauvegarde (Création ou Mise à jour) basée sur l'état du formulaire
   const save = useCallback(async (): Promise<void> => {
     if (!nom.trim() || !explication.trim() || !scriptRhai.trim()) {
-      throw new Error("Veuillez remplir tous les champs obligatoires.")
+      throw new Error("Please fill in all required fields.")
     }
 
     setLoading(true)

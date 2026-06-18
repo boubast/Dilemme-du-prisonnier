@@ -11,14 +11,17 @@ export async function fetchStrategies(typeTournoi:string): Promise<Strategie[]> 
     const response = await fetch(`${API_URL}/strategy/${typeTournoi}`)
 
     if (!response.ok) {
-      throw await handleApiResponseError(response, "Erreur lors de la récupération des stratégies")
+      throw await handleApiResponseError(
+        response,
+        "Could not retrieve strategies"
+      )
     }
 
     const data: StrategieDTO[] = await response.json()
 
     return data.map(mapStrategieDTOToStrategie)
   } catch (error) {
-    console.error("Erreur fetchStrategies:", error)
+    console.error("fetchStrategies error:", error)
     throw error
   }
 }
@@ -34,13 +37,16 @@ export async function fetchStrategyById(
     }
 
     if (!response.ok) {
-      throw await handleApiResponseError(response, "Erreur lors de la récupération de la stratégie")
+      throw await handleApiResponseError(
+        response,
+        "Could not retrieve the strategy"
+      )
     }
 
     const data: StrategieDTO = await response.json()
     return mapStrategieDTOToStrategie(data)
   } catch (error) {
-    console.error("Erreur fetchStrategyById:", error)
+    console.error("fetchStrategyById error:", error)
     throw error
   }
 }
@@ -62,18 +68,23 @@ export async function createStrategy(
     })
 
     if (!response.ok) {
-      throw await handleApiResponseError(response, "Erreur lors de la création de la stratégie")
+      throw await handleApiResponseError(
+        response,
+        "Could not create the strategy"
+      )
     }
 
     const data: StrategieDTO = await response.json()
     return mapStrategieDTOToStrategie(data)
   } catch (error) {
-    console.error("Erreur createStrategy:", error)
+    console.error("createStrategy error:", error)
     throw error
   }
 }
 
-export async function validateStrategySyntax(scriptRhai: string): Promise<string | null> {
+export async function validateStrategySyntax(
+  scriptRhai: string
+): Promise<string | null> {
   const response = await fetch(`${API_URL}/strategy/validate-syntax`, {
     method: "POST",
     headers: {
@@ -85,11 +96,11 @@ export async function validateStrategySyntax(scriptRhai: string): Promise<string
   })
 
   if (!response.ok) {
-    throw new Error("Erreur lors de la validation syntaxique")
+    throw new Error("Syntax validation failed")
   }
 
   const data: { valid: boolean; error: string | null } = await response.json()
-  return data.valid ? null : data.error || "Script Rhai invalide."
+  return data.valid ? null : data.error || "Invalid Rhai script."
 }
 
 /**
@@ -113,13 +124,16 @@ export async function updateStrategy(
     })
 
     if (!response.ok) {
-      throw await handleApiResponseError(response, "Erreur lors de la mise à jour de la stratégie")
+      throw await handleApiResponseError(
+        response,
+        "Could not update the strategy"
+      )
     }
 
     const data: StrategieDTO = await response.json()
     return mapStrategieDTOToStrategie(data)
   } catch (error) {
-    console.error("Erreur updateStrategy:", error)
+    console.error("updateStrategy error:", error)
     throw error
   }
 }
@@ -134,10 +148,13 @@ export async function deleteStrategy(id: string): Promise<void> {
     })
 
     if (!response.ok) {
-      throw await handleApiResponseError(response, "Erreur lors de la suppression de la stratégie")
+      throw await handleApiResponseError(
+        response,
+        "Could not delete the strategy"
+      )
     }
   } catch (error) {
-    console.error("Erreur deleteStrategy:", error)
+    console.error("deleteStrategy error:", error)
     throw error
   }
 }
