@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Editor } from "@monaco-editor/react"
-import type { BeforeMount, Monaco, OnChange, OnMount } from "@monaco-editor/react"
+import type {
+  BeforeMount,
+  Monaco,
+  OnChange,
+  OnMount,
+} from "@monaco-editor/react"
 import type { Position, editor } from "monaco-editor"
 import { useTheme } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
@@ -99,14 +104,14 @@ const configureRhai: BeforeMount = (monaco) => {
       { open: "{", close: "}" },
       { open: "[", close: "]" },
       { open: "(", close: ")" },
-      { open: "\"", close: "\"", notIn: ["string"] },
+      { open: '"', close: '"', notIn: ["string"] },
       { open: "'", close: "'", notIn: ["string", "comment"] },
     ],
     surroundingPairs: [
       { open: "{", close: "}" },
       { open: "[", close: "]" },
       { open: "(", close: ")" },
-      { open: "\"", close: "\"" },
+      { open: '"', close: '"' },
       { open: "'", close: "'" },
     ],
     indentationRules: {
@@ -133,7 +138,10 @@ const configureRhai: BeforeMount = (monaco) => {
   if (!rhaiCompletionProviderRegistered) {
     monaco.languages.registerCompletionItemProvider(RHAI_LANGUAGE_ID, {
       triggerCharacters: [":"],
-      provideCompletionItems: (model: editor.ITextModel, position: Position) => {
+      provideCompletionItems: (
+        model: editor.ITextModel,
+        position: Position
+      ) => {
         const lineUntilPosition = model.getValueInRange({
           startLineNumber: position.lineNumber,
           startColumn: 1,
@@ -163,7 +171,7 @@ const configureRhai: BeforeMount = (monaco) => {
               kind: monaco.languages.CompletionItemKind.EnumMember,
               insertText: "COOPERATE",
               detail: "Choice enum",
-              documentation: "Retourne le choix de coopération.",
+              documentation: "Returns the cooperate choice.",
               range,
             },
             {
@@ -171,7 +179,7 @@ const configureRhai: BeforeMount = (monaco) => {
               kind: monaco.languages.CompletionItemKind.EnumMember,
               insertText: "BETRAY",
               detail: "Choice enum",
-              documentation: "Retourne le choix de trahison.",
+              documentation: "Returns the betray choice.",
               range,
             },
           ],
@@ -286,33 +294,42 @@ const configureRhai: BeforeMount = (monaco) => {
             },
           ],
         ],
-        [/[a-zA-Z_]\w*(?=\s*\()/, {
-          cases: {
-            "@keywords": "keyword",
-            "@builtins": "function",
-            "@default": "function",
+        [
+          /[a-zA-Z_]\w*(?=\s*\()/,
+          {
+            cases: {
+              "@keywords": "keyword",
+              "@builtins": "function",
+              "@default": "function",
+            },
           },
-        }],
-        [/[a-zA-Z_]\w*/, {
-          cases: {
-            "@keywords": "keyword",
-            "@builtins": "function",
-            "@domainTypes": "type.identifier",
-            "@enumVariants": "constant.enum",
-            "@variables": "variable.predefined",
-            "@default": "identifier",
+        ],
+        [
+          /[a-zA-Z_]\w*/,
+          {
+            cases: {
+              "@keywords": "keyword",
+              "@builtins": "function",
+              "@domainTypes": "type.identifier",
+              "@enumVariants": "constant.enum",
+              "@variables": "variable.predefined",
+              "@default": "identifier",
+            },
           },
-        }],
+        ],
         [/[A-Z][\w$]*/, "type.identifier"],
         { include: "@whitespace" },
         [/[{}()[\]]/, "@brackets"],
         [/[<>](?!@symbols)/, "@brackets"],
-        [/@symbols/, {
-          cases: {
-            "@operators": "operator",
-            "@default": "",
+        [
+          /@symbols/,
+          {
+            cases: {
+              "@operators": "operator",
+              "@default": "",
+            },
           },
-        }],
+        ],
         [/\d*\.\d+([eE][-+]?\d+)?/, "number.float"],
         [/0[xX][0-9a-fA-F_]+/, "number.hex"],
         [/\d+/, "number"],
@@ -474,7 +491,7 @@ export function StrategyCodeEditor({
         language={RHAI_LANGUAGE_ID}
         loading={
           <span className="text-xs text-muted-foreground">
-            Chargement de l'éditeur...
+            Loading editor...
           </span>
         }
         onChange={handleChange}

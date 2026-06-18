@@ -21,8 +21,8 @@ router = APIRouter(prefix="/strategy", tags=["strategy"])
 
 def validate_rhai_syntax(script: str) -> str | None:
     result = MoteurChoix().choix(script, "[]", "[]", "1", "1", "1", "1")
-    if result.startswith("Erreur:"):
-        return result.removeprefix("Erreur:").strip()
+    if result.startswith(("Error:", "Erreur:")):
+        return result.split(":", 1)[1].strip()
     return None
 
 
@@ -41,7 +41,7 @@ def validate_strategie_syntax(payload: StrategieSyntaxValidationRequest) -> Stra
 def get_strategie(strategie_id: int, db: Session = Depends(get_db)) -> Strategie:
     strategie = db.get(Strategie, strategie_id)
     if strategie is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Strategie introuvable")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Strategy not found")
     return strategie
 
 
@@ -62,7 +62,7 @@ def create_strategie(payload: StrategieCreate, db: Session = Depends(get_db)) ->
 def update_strategie(strategie_id: int, payload: StrategieUpdate, db: Session = Depends(get_db)) -> Strategie:
     strategie = db.get(Strategie, strategie_id)
     if strategie is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Strategie introuvable")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Strategy not found")
 
     if payload.script_rhai is not None:
         syntax_error = validate_rhai_syntax(payload.script_rhai)
@@ -81,7 +81,7 @@ def update_strategie(strategie_id: int, payload: StrategieUpdate, db: Session = 
 def delete_strategie(strategie_id: int, db: Session = Depends(get_db)) -> Response:
     strategie = db.get(Strategie, strategie_id)
     if strategie is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Strategie introuvable")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Strategy not found")
 
     db.delete(strategie)
     try:
@@ -90,7 +90,7 @@ def delete_strategie(strategie_id: int, db: Session = Depends(get_db)) -> Respon
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Impossible de supprimer cette stratégie car elle est utilisée par des données existantes.",
+            detail="This strategy cannot be deleted because existing data uses it.",
         ) from exc
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)

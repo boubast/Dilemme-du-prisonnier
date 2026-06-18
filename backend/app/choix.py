@@ -82,19 +82,18 @@ class MoteurChoix(metaclass=SingletonMeta):
             return result
         # Gestion des erreurs spécifiques à l'exécution du script
         except Trap:
-            return "Erreur: Le script a été interrompu (Dépassement de la limite d'instructions / boucle infinie)"
+            return "Error: The script was interrupted (instruction limit exceeded or infinite loop)"
         except Exception as e:
             try:
                 with open(error_file.name, encoding="utf-8") as f:
                     err_content = f.read().strip()
                 if err_content:
-                    return f"Erreur: {err_content}"
+                    return f"Error: {err_content}"
             except Exception:
                 pass
-            return f"Erreur: {str(e)}"
+            return f"Error: {str(e)}"
         finally:
             if os.path.exists(output_file.name):
                 os.unlink(output_file.name)
             if os.path.exists(error_file.name):
                 os.unlink(error_file.name)
-

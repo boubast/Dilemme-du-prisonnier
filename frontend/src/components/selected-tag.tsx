@@ -11,14 +11,14 @@ export function SelectedTag({ strategie, onRemove }: SelectedTagProps) {
   return (
     <Badge
       variant="secondary"
-      className="inline-flex items-center gap-1 pl-2.5 pr-1.5 h-6 font-medium animate-in fade-in slide-in-from-top-1 duration-150"
+      className="inline-flex h-6 animate-in items-center gap-1 pr-1.5 pl-2.5 font-medium duration-150 fade-in slide-in-from-top-1"
     >
       {strategie.nom}
       <button
         type="button"
         onClick={() => onRemove(strategie.id)}
-        className="ml-0.5 flex size-3.5 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
-        aria-label={`Retirer ${strategie.nom}`}
+        className="ml-0.5 flex size-3.5 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        aria-label={`Remove ${strategie.nom}`}
       >
         <X className="size-2.5" />
       </button>

@@ -17,7 +17,7 @@ class TournamentLaunchCreate(BaseModel):
     @classmethod
     def validate_unique_strategies(cls, strategie_ids: list[int]) -> list[int]:
         if len(strategie_ids) != len(set(strategie_ids)):
-            raise ValueError("Un tournoi ne peut pas utiliser plusieurs fois la meme strategie")
+            raise ValueError("A tournament cannot use the same strategy more than once")
         return strategie_ids
 
 class TournamentMultiLaunchCreate(BaseModel):
@@ -28,7 +28,7 @@ class TournamentMultiLaunchCreate(BaseModel):
     @classmethod
     def validate_unique_strategies(cls, strategie_ids: list[int]) -> list[int]:
         if len(strategie_ids) != len(set(strategie_ids)):
-            raise ValueError("Un tournoi ne peut pas utiliser plusieurs fois la meme strategie")
+            raise ValueError("A tournament cannot use the same strategy more than once")
         return strategie_ids
 
 class IterationRead(BaseModel):
@@ -89,7 +89,7 @@ class TournamentListRead(BaseModel):
     @computed_field
     @property
     def nom(self) -> str:
-        return f"Tournoi #{self.id_tournoi}"
+        return f"Tournament #{self.id_tournoi}"
 
 
 class TournamentDetailRead(BaseModel):

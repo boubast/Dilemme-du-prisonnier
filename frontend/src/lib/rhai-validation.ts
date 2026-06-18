@@ -25,7 +25,7 @@ const CLOSING_TO_OPENING: Record<string, BracketToken["char"]> = {
 }
 
 function formatPosition(lineNumber: number, column: number) {
-  return `ligne ${lineNumber}, colonne ${column}`
+  return `line ${lineNumber}, column ${column}`
 }
 
 function makeError(
@@ -90,7 +90,7 @@ export function validateRhaiScript(script: string): RhaiSyntaxError | null {
     if (quote) {
       if (char === "\n") {
         return {
-          message: `Chaîne de caractères non fermée (${formatPosition(
+          message: `Unterminated string (${formatPosition(
             quoteStartLine,
             quoteStartColumn
           )}).`,
@@ -130,14 +130,14 @@ export function validateRhaiScript(script: string): RhaiSyntaxError | null {
 
     if (char === "=" && nextChar === "=" && script[i + 2] === "=") {
       return makeError(
-        `Opérateur invalide "${script[i + 3] === "=" ? "====" : "==="}". Utilisez "==" pour comparer.`,
+        `Invalid operator "${script[i + 3] === "=" ? "====" : "==="}". Use "==" for comparison.`,
         lineNumber,
         column,
         script[i + 3] === "=" ? 4 : 3
       )
     }
 
-    if (char === "\"" || char === "'") {
+    if (char === '"' || char === "'") {
       quote = char
       quoteStartLine = lineNumber
       quoteStartColumn = column
@@ -161,7 +161,7 @@ export function validateRhaiScript(script: string): RhaiSyntaxError | null {
 
       if (!lastOpening) {
         return {
-          message: `Fermeture "${char}" sans ouverture correspondante (${formatPosition(
+          message: `Closing "${char}" has no matching opening bracket (${formatPosition(
             lineNumber,
             column
           )}).`,
@@ -173,7 +173,7 @@ export function validateRhaiScript(script: string): RhaiSyntaxError | null {
 
       if (lastOpening.char !== expectedOpening) {
         return {
-          message: `Fermeture "${char}" invalide : "${CLOSING_BRACKETS[lastOpening.char]}" attendu pour "${lastOpening.char}" ouvert ${formatPosition(
+          message: `Invalid closing bracket "${char}": expected "${CLOSING_BRACKETS[lastOpening.char]}" for "${lastOpening.char}" opened at ${formatPosition(
             lastOpening.lineNumber,
             lastOpening.column
           )}.`,
@@ -206,10 +206,11 @@ export function validateRhaiScript(script: string): RhaiSyntaxError | null {
     const prefix = beforeElse?.[0] ?? ""
     const lineNumber = prefix.split("\n").length
     const lastLineBreak = prefix.lastIndexOf("\n")
-    const column = lastLineBreak === -1 ? prefix.length + 1 : prefix.length - lastLineBreak
+    const column =
+      lastLineBreak === -1 ? prefix.length + 1 : prefix.length - lastLineBreak
 
     return makeError(
-      `"else" ne peut pas commencer un script Rhai : il doit suivre un bloc "if".`,
+      `A Rhai script cannot start with "else"; it must follow an "if" block.`,
       lineNumber,
       column,
       4
@@ -218,7 +219,7 @@ export function validateRhaiScript(script: string): RhaiSyntaxError | null {
 
   if (quote) {
     return {
-      message: `Chaîne de caractères non fermée (${formatPosition(
+      message: `Unterminated string (${formatPosition(
         quoteStartLine,
         quoteStartColumn
       )}).`,
@@ -230,7 +231,7 @@ export function validateRhaiScript(script: string): RhaiSyntaxError | null {
 
   if (inBlockComment) {
     return {
-      message: `Commentaire de bloc non fermé (${formatPosition(
+      message: `Unterminated block comment (${formatPosition(
         blockCommentStartLine,
         blockCommentStartColumn
       )}).`,
@@ -243,7 +244,7 @@ export function validateRhaiScript(script: string): RhaiSyntaxError | null {
   const lastOpening = stack.pop()
   if (lastOpening) {
     return {
-      message: `"${CLOSING_BRACKETS[lastOpening.char]}" manquant pour "${lastOpening.char}" ouvert ${formatPosition(
+      message: `Missing "${CLOSING_BRACKETS[lastOpening.char]}" for "${lastOpening.char}" opened at ${formatPosition(
         lastOpening.lineNumber,
         lastOpening.column
       )}.`,

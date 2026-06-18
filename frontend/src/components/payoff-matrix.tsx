@@ -37,17 +37,17 @@ export function PayoffMatrix({ payoffs }: PayoffMatrixProps) {
               </span>
             </th>
             <th className="w-24 border border-border px-1 py-1.5 font-semibold">
-              B coopère
+              B cooperates
             </th>
             <th className="w-24 border border-border px-1 py-1.5 font-semibold">
-              B trahit
+              B betrays
             </th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td className="h-12 w-24 border border-border px-1 py-2 font-semibold">
-              A coopère
+              A cooperates
             </td>
             {/* Cell A coopère, B coopère (R, R) */}
             <td className="relative h-12 border border-border bg-card p-0">
@@ -100,7 +100,7 @@ export function PayoffMatrix({ payoffs }: PayoffMatrixProps) {
           </tr>
           <tr>
             <td className="h-12 w-24 border border-border px-1 py-2 font-semibold">
-              A trahit
+              A betrays
             </td>
             {/* Cell A trahit, B coopère (T, S) */}
             <td className="relative h-12 border border-border bg-card p-0">

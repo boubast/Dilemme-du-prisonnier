@@ -55,7 +55,7 @@ def integrity_error_handler(request, exc: IntegrityError):
         content={
             "detail": {
                 "error_type": "database_integrity_error",
-                "message": "Une contrainte d'intégrité de la base de données a été violée. Veuillez vérifier que les identifiants fournis (ex: stratégies) existent."
+                "message": "A database integrity constraint was violated. Check that the provided identifiers (for example, strategies) exist."
             }
         }
     )
@@ -68,7 +68,7 @@ def sqlalchemy_error_handler(request, exc: SQLAlchemyError):
         content={
             "detail": {
                 "error_type": "database_error",
-                "message": "Une erreur est survenue lors de l'accès à la base de données. Veuillez réessayer ultérieurement."
+                "message": "A database access error occurred. Please try again later."
             }
         }
     )
@@ -77,14 +77,14 @@ def sqlalchemy_error_handler(request, exc: SQLAlchemyError):
 @app.exception_handler(Exception)
 def general_exception_handler(request, exc: Exception):
     import traceback
-    print(f"Exception non gérée interceptée : {exc}")
+    print(f"Unhandled exception caught: {exc}")
     traceback.print_exc()
     return JSONResponse(
         status_code=500,
         content={
             "detail": {
                 "error_type": "internal_server_error",
-                "message": "Une erreur interne inattendue s'est produite sur le serveur."
+                "message": "An unexpected internal server error occurred."
             }
         }
     )

@@ -115,11 +115,11 @@ export default function TournamentInsightsTab({
     <div className="flex animate-in flex-col gap-4 py-2 duration-150 fade-in">
       <div>
         <h3 className="text-sm font-semibold text-foreground">
-          Évolution des scores au cours du tournoi
+          Score progression throughout the tournament
         </h3>
         <p className="mt-0.5 text-xs text-muted-foreground">
-          Score cumulé de chaque stratégie à chaque itération (somme de tous ses
-          matchs)
+          Cumulative score for each strategy at every iteration (sum of all its
+          matches)
         </p>
       </div>
 

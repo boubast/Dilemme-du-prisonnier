@@ -22,7 +22,7 @@ export function useTournament(
       const list = await fetchTournaments()
       setTournaments(list)
     } catch (e) {
-      console.error("Erreur lors de la récupération des tournois :", e)
+      console.error("Could not retrieve tournaments:", e)
     } finally {
       setLoading(false)
     }
@@ -52,10 +52,7 @@ export function useTournament(
 
         setActiveTournament(t || null)
       } catch (e) {
-        console.error(
-          "Erreur lors de la récupération du détail du tournoi :",
-          e
-        )
+        console.error("Could not retrieve tournament details:", e)
       } finally {
         if (!ignore) {
           setActiveLoading(false)

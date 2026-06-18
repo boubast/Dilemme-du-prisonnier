@@ -55,8 +55,8 @@ class Partie:
                                             cout_coop_coop,
                                             cout_trahi_coop,
                                             cout_coop_trahi)
-                if choix_strat1.startswith("Erreur:"):
-                    error_msg = choix_strat1.replace("Erreur:", "", 1).strip()
+                if choix_strat1.startswith(("Error:", "Erreur:")):
+                    error_msg = choix_strat1.split(":", 1)[1].strip()
                     raise RhaiScriptError(self.id_strategie_1, strategie_1.nom, no_iteration + 1, error_msg)
 
                 choix_strat2 = moteurChoix.choix(script2,actions_strat2_str + "]",actions_strat1_str + "]",
@@ -64,8 +64,8 @@ class Partie:
                                             cout_coop_coop,
                                             cout_trahi_coop,
                                             cout_coop_trahi)
-                if choix_strat2.startswith("Erreur:"):
-                    error_msg = choix_strat2.replace("Erreur:", "", 1).strip()
+                if choix_strat2.startswith(("Error:", "Erreur:")):
+                    error_msg = choix_strat2.split(":", 1)[1].strip()
                     raise RhaiScriptError(self.id_strategie_2, strategie_2.nom, no_iteration + 1, error_msg)
                 
                 # Création de l'itération en BD
@@ -85,4 +85,3 @@ class Partie:
             db.commit()
         finally:
             db.close()
-

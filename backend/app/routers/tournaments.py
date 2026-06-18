@@ -44,7 +44,7 @@ def get_tournament(tournoi_id: int, db: Session = Depends(get_db)) -> Tournament
         if tournoi is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Tournoi introuvable",
+                detail="Tournament not found",
             )
         tournoiStats = TournoiMoteur(tournoi.id_tournoi)
         tournoiStats.generer_statistiques()

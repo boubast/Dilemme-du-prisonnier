@@ -22,10 +22,10 @@ export default function TournamentHistory({
     <section className="flex w-1/3 flex-col gap-3 rounded-xl border border-border bg-card p-4">
       <div>
         <h2 className="text-sm font-semibold text-foreground">
-          Historique des tournois
+          Tournament history
         </h2>
         <p className="mt-0.5 text-xs text-muted-foreground">
-          Les expériences récentes
+          Recent experiments
         </p>
       </div>
 
@@ -41,7 +41,7 @@ export default function TournamentHistory({
           </div>
         ) : tournaments.length === 0 ? (
           <p className="py-6 text-center text-xs text-muted-foreground">
-            Aucun tournoi enregistré.
+            No tournaments recorded.
           </p>
         ) : (
           tournaments.map((t, index) => {
@@ -77,14 +77,14 @@ export default function TournamentHistory({
                       variant="secondary"
                       className="h-4 shrink-0 rounded-sm border-none bg-primary/10 px-1 py-0 text-[9px] font-semibold tracking-wide text-primary uppercase"
                     >
-                      En cours
+                      In progress
                     </Badge>
                   ) : isRecent ? (
                     <Badge
                       variant="secondary"
                       className="h-4 shrink-0 rounded-sm border-none bg-primary/10 px-1 py-0 text-[9px] font-semibold tracking-wide text-primary uppercase"
                     >
-                      Récent
+                      Recent
                     </Badge>
                   ) : null}
                 </div>
@@ -96,7 +96,7 @@ export default function TournamentHistory({
                     {isPending ? (
                       <>
                         <LoaderCircle className="size-3 animate-spin" />
-                        Calcul...
+                        Calculating...
                       </>
                     ) : (
                       <>

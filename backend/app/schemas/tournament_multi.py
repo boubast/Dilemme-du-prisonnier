@@ -13,7 +13,7 @@ class TournamentMultiLaunchCreate(BaseModel):
     @classmethod
     def validate_unique_strategies(cls, strategie_ids: list[int]) -> list[int]:
         if len(strategie_ids) != len(set(strategie_ids)):
-            raise ValueError("Un tournoi ne peut pas utiliser plusieurs fois la meme strategie")
+            raise ValueError("A tournament cannot use the same strategy more than once")
         return strategie_ids
 
 
