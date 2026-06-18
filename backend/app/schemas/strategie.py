@@ -1,6 +1,6 @@
 import re
 from typing import Any
-from app.models import Type_tournoi
+from app.models.types.type_tournoi import Type_tournoi
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 

@@ -1,7 +1,7 @@
 from sqlalchemy import BigInteger, Identity, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import ENUM as pgEnum
-from app.models import Type_tournoi
+from app.models.types.type_tournoi import Type_tournoi
 
 from app.database import Base
 

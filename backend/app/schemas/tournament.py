@@ -1,5 +1,5 @@
 from datetime import date
-from app.models import Type_tournoi
+from app.models.types.type_tournoi import Type_tournoi
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 

@@ -3,7 +3,7 @@ from datetime import date
 from sqlalchemy import BigInteger, Date, Identity, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import ENUM as pgEnum
-from app.models import Type_tournoi
+from app.models.types.type_tournoi import Type_tournoi
 
 from app.database import Base
 
