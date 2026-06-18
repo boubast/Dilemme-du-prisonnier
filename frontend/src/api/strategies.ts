@@ -1,5 +1,6 @@
 import type { Strategie } from "@/type"
 import { mapStrategieDTOToStrategie, type StrategieDTO } from "@/dto/strategy"
+import { handleApiResponseError } from "./apiError"
 
 const API_URL =
   (import.meta.env.VITE_API_URL || "http://localhost:8000") +
@@ -10,7 +11,7 @@ export async function fetchStrategies(): Promise<Strategie[]> {
     const response = await fetch(`${API_URL}/strategy`)
 
     if (!response.ok) {
-      throw new Error("Erreur lors de la récupération des stratégies")
+      throw await handleApiResponseError(response, "Erreur lors de la récupération des stratégies")
     }
 
     const data: StrategieDTO[] = await response.json()
@@ -33,7 +34,7 @@ export async function fetchStrategyById(
     }
 
     if (!response.ok) {
-      throw new Error("Erreur lors de la récupération de la stratégie")
+      throw await handleApiResponseError(response, "Erreur lors de la récupération de la stratégie")
     }
 
     const data: StrategieDTO = await response.json()
@@ -61,7 +62,7 @@ export async function createStrategy(
     })
 
     if (!response.ok) {
-      throw new Error("Erreur lors de la création de la stratégie")
+      throw await handleApiResponseError(response, "Erreur lors de la création de la stratégie")
     }
 
     const data: StrategieDTO = await response.json()
@@ -70,6 +71,25 @@ export async function createStrategy(
     console.error("Erreur createStrategy:", error)
     throw error
   }
+}
+
+export async function validateStrategySyntax(scriptRhai: string): Promise<string | null> {
+  const response = await fetch(`${API_URL}/strategy/validate-syntax`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      script_rhai: scriptRhai,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error("Erreur lors de la validation syntaxique")
+  }
+
+  const data: { valid: boolean; error: string | null } = await response.json()
+  return data.valid ? null : data.error || "Script Rhai invalide."
 }
 
 /**
@@ -93,7 +113,7 @@ export async function updateStrategy(
     })
 
     if (!response.ok) {
-      throw new Error("Erreur lors de la mise à jour de la stratégie")
+      throw await handleApiResponseError(response, "Erreur lors de la mise à jour de la stratégie")
     }
 
     const data: StrategieDTO = await response.json()
@@ -114,7 +134,7 @@ export async function deleteStrategy(id: string): Promise<void> {
     })
 
     if (!response.ok) {
-      throw new Error("Erreur lors de la suppression de la stratégie")
+      throw await handleApiResponseError(response, "Erreur lors de la suppression de la stratégie")
     }
   } catch (error) {
     console.error("Erreur deleteStrategy:", error)

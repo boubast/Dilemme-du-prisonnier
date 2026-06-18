@@ -1,19 +1,41 @@
+import { LoaderCircle } from "lucide-react"
+
 import { useTournament } from "@/hooks/useTournament"
 import { Badge } from "./ui/badge"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs"
 import TournamentResultsTab from "./tournament-results-tab"
 import TournamentMatchesTab from "./tournament-matches-tab"
+import TournamentMatrixTab from "./tournament-matrix-tab"
 import TournamentInsightsTab from "./tournament-insights-tab"
 
 interface TournamentStatsProps {
   tournamentId: string | null
+  creating?: boolean
 }
 
 export default function TournamentStats({
   tournamentId,
+  creating = false,
 }: TournamentStatsProps) {
   const { activeTournament: tournament, activeLoading: loading } =
     useTournament(tournamentId, false)
+
+  if (creating) {
+    return (
+      <section className="flex min-h-120 w-2/3 flex-col items-center gap-3 rounded-xl border border-border bg-card p-8 pt-12 text-center">
+        <LoaderCircle className="size-6 animate-spin text-primary" />
+        <div>
+          <p className="text-sm font-medium text-foreground">
+            Calcul du tournoi en cours...
+          </p>
+          <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+            Les statistiques s'afficheront dès que toutes les parties seront
+            terminées.
+          </p>
+        </div>
+      </section>
+    )
+  }
 
   if (loading) {
     return (
@@ -89,6 +111,12 @@ export default function TournamentStats({
             Parties
           </TabsTrigger>
           <TabsTrigger
+            value="matrix"
+            className="cursor-pointer px-3 py-1 text-xs"
+          >
+            Matrice
+          </TabsTrigger>
+          <TabsTrigger
             value="insights"
             className="cursor-pointer px-3 py-1 text-xs"
           >
@@ -102,6 +130,9 @@ export default function TournamentStats({
           </TabsContent>
           <TabsContent value="matches" className="mt-0 outline-none">
             <TournamentMatchesTab tournoi={tournament} />
+          </TabsContent>
+          <TabsContent value="matrix" className="mt-0 outline-none">
+            <TournamentMatrixTab tournoi={tournament} />
           </TabsContent>
           <TabsContent value="insights" className="mt-0 outline-none">
             <TournamentInsightsTab tournoi={tournament} />

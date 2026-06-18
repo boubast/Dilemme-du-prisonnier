@@ -42,10 +42,14 @@ export function useTournament(
       return
     }
 
+    let ignore = false
+
     const loadActive = async () => {
       setActiveLoading(true)
       try {
         const t = await fetchTournamentById(tournamentId)
+        if (ignore) return
+
         setActiveTournament(t || null)
       } catch (e) {
         console.error(
@@ -53,11 +57,17 @@ export function useTournament(
           e
         )
       } finally {
-        setActiveLoading(false)
+        if (!ignore) {
+          setActiveLoading(false)
+        }
       }
     }
 
     loadActive()
+
+    return () => {
+      ignore = true
+    }
   }, [tournamentId])
 
   const getTournament = useCallback(async (id: string) => {

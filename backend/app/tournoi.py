@@ -1,24 +1,33 @@
+import asyncio
+from datetime import date
+
 from app.partie import Partie
 
-from app.models import Iteration, Strategie, Participation
-from app.models import Tournoi as TournoiModel
+from app.models import Strategie, Participation
+from app.models import Tournament as TournoiModel
+from app.models import TournamentClassic as TournoiClassicModel
 from app.models import Partie as PartieModel
 from app.database import SessionLocal
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session, selectinload
-from datetime import date
+from sqlalchemy.orm import selectinload
+
 
 class Tournoi:
     id_tournoi: int
-    date_creation = ""
-    meilleure_strategie = ""
-    resultats = {}
-    scores_totaux = {}
-    parties = []
-    participations = []
 
     def __init__(self,id_tournoi):
+        self.date_creation = ""
+        self.meilleure_strategie = ""
+        self.resultats = {}
+        self.scores_totaux = {}
+        self.parties = []
+        self.participations = []
+        self.strategie_ids = []
+        self.type_tournoi = "Classique"
+
+        self.duree_secondes = None
+        self.participations_multi = None
 
         # Récupérer un tournoi de la BD
         db = SessionLocal()
@@ -26,26 +35,39 @@ class Tournoi:
             stmt = (
                 select(TournoiModel)
                 .where(TournoiModel.id_tournoi == id_tournoi)
-                .options(
-                    selectinload(TournoiModel.parties).selectinload(PartieModel.iterations),
-                    selectinload(TournoiModel.parties).selectinload(PartieModel.strategie_1),
-                    selectinload(TournoiModel.parties).selectinload(PartieModel.strategie_2),
-                    selectinload(TournoiModel.participations).selectinload(Participation.strategie),
-                )
             )
             tournoiBD = db.scalars(stmt).first()
+            if tournoiBD is None:
+                raise ValueError("Tournoi introuvable")
+            
+            stmt = (
+                select(TournoiClassicModel)
+                .where(TournoiClassicModel.id_tournoi == id_tournoi)
+                .options(
+                    selectinload(TournoiClassicModel.parties).selectinload(PartieModel.iterations),
+                    selectinload(TournoiClassicModel.parties).selectinload(PartieModel.strategie_1),
+                    selectinload(TournoiClassicModel.parties).selectinload(PartieModel.strategie_2),
+                    selectinload(TournoiClassicModel.participations).selectinload(Participation.strategie),
+                )
+            )
+            tournoiClassicBD = db.scalars(stmt).first()
+            if tournoiClassicBD is None:
+                raise ValueError("Tournoi introuvable")
 
-            self.participations = tournoiBD.participations
-            self.parties = tournoiBD.parties
+            self.participations = tournoiClassicBD.participations
+            self.parties = tournoiClassicBD.parties
+            for partie in self.parties:
+                partie.resultats = {"V1": 0, "V2": 0, "N": 0}
+                partie.score_strategie_1 = 0
+                partie.score_strategie_2 = 0
 
-            self.nb_iterations = tournoiBD.nb_iterations
-            self.cout_coop_coop = tournoiBD.cout_coop_coop
-            self.cout_coop_trahi = tournoiBD.cout_coop_trahi
-            self.cout_trahi_coop = tournoiBD.cout_trahi_coop
-            self.cout_trahi_trahi = tournoiBD.cout_trahi_trahi
+            self.nb_iterations = tournoiClassicBD.nb_iterations
+            self.cout_coop_coop = tournoiClassicBD.cout_coop_coop
+            self.cout_coop_trahi = tournoiClassicBD.cout_coop_trahi
+            self.cout_trahi_coop = tournoiClassicBD.cout_trahi_coop
+            self.cout_trahi_trahi = tournoiClassicBD.cout_trahi_trahi
             self.strategie_ids = [participation.id_strategie 
-                                  for participation in db.scalars(select(Participation)
-                                    .where(Participation.id_tournoi == tournoiBD.id_tournoi)).all()]
+                                  for participation in self.participations]
             self.date_creation = tournoiBD.date_creation
             self.id_tournoi = tournoiBD.id_tournoi
 
@@ -55,24 +77,28 @@ class Tournoi:
     @staticmethod
     def create_tournoi(nb_iterations,cout_coop_coop,cout_coop_trahi,cout_trahi_coop,cout_trahi_trahi,strategie_ids):
         # Création du tournoi en BD
-        tournoi = TournoiModel(nb_iterations=nb_iterations,
-                               cout_coop_coop=cout_coop_coop,
-                               cout_coop_trahi=cout_coop_trahi,
-                               cout_trahi_coop=cout_trahi_coop,
-                               cout_trahi_trahi=cout_trahi_trahi,
-                               date_creation=date.today())
+        tournoi = TournoiModel(date_creation=date.today(),
+                               type_tournoi="Classique")
+        
         db = SessionLocal()
         try:
             db.add(tournoi)
             db.commit()
             db.refresh(tournoi)
 
+            tournoi_multi = TournoiClassicModel(id_tournoi=tournoi.id_tournoi,
+                               nb_iterations=nb_iterations,
+                               cout_coop_coop=cout_coop_coop,
+                               cout_coop_trahi=cout_coop_trahi,
+                               cout_trahi_coop=cout_trahi_coop,
+                               cout_trahi_trahi=cout_trahi_trahi)
+            db.add(tournoi_multi)
+
             # Création des participations (lien tournoi - stratégie) en BD
             for id_strategie in strategie_ids:
                 participation = Participation(id_tournoi=tournoi.id_tournoi,id_strategie=id_strategie)
                 db.add(participation)
-                db.commit()
-                db.refresh(participation)
+            db.commit()
 
             return Tournoi(tournoi.id_tournoi)
         finally:
@@ -89,14 +115,12 @@ class Tournoi:
             
             # Parcourir les parties du tournoi
             for partie in self.parties:
-                iterations = db.scalars(select(Iteration)
-                                        .where(Iteration.id_partie == partie.id_partie)).all()
                 score_strategie_1 = 0
                 score_strategie_2 = 0
                 partie.resultats= {"V1":0,"V2":0,"N":0}
                 
                 # Parcourir les itérations de la partie
-                for iteration in iterations:
+                for iteration in partie.iterations:
                     # Chargement des scores et des Victoire 1 / Victoire 2 / Nul
                     match iteration.choix_strategie_1:
                         case 0:
@@ -155,20 +179,36 @@ class Tournoi:
         finally:
             db.close()
 
-    def execute(self):
+    def _execute_partie(self, id_strategie1, id_strategie2):
+        # Chaque tâche utilise ses propres sessions SQLAlchemy via Partie.
+        partie_courante = Partie(
+            id_strategie1,
+            id_strategie2,
+            self.id_tournoi)
+
+        partie_courante.execute(
+            self.nb_iterations,
+            self.cout_coop_coop,
+            self.cout_coop_trahi,
+            self.cout_trahi_coop,
+            self.cout_trahi_trahi)
+
+    async def execute_async(self):
+        semaphore = asyncio.Semaphore(8)
+
+        async def run_partie(id_strategie1, id_strategie2):
+            async with semaphore:
+                await asyncio.to_thread(self._execute_partie, id_strategie1, id_strategie2)
+
+        tasks = []
         for i in range(len(self.strategie_ids)):
             for j in range(i+1,len(self.strategie_ids)):
-                    id_strategie1 = self.strategie_ids[i]
-                    id_strategie2 = self.strategie_ids[j]
+                id_strategie1 = self.strategie_ids[i]
+                id_strategie2 = self.strategie_ids[j]
+                tasks.append(run_partie(id_strategie1, id_strategie2))
 
-                    # Création de la partie à exécuter
-                    partie_courante = Partie(
-                        id_strategie1,
-                        id_strategie2,
-                        self.id_tournoi)
-                    
-                    partie_courante.execute(self.nb_iterations,
-                        self.cout_trahi_trahi,
-                        self.cout_coop_coop,
-                        self.cout_trahi_coop,
-                        self.cout_coop_trahi)
+        await asyncio.gather(*tasks)
+        return Tournoi(self.id_tournoi)
+
+    def execute(self):
+        return asyncio.run(self.execute_async())

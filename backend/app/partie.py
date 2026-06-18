@@ -1,4 +1,4 @@
-from app.choix import MoteurChoix
+from app.choix import MoteurChoix, RhaiScriptError
 from sqlalchemy.orm import Session
 
 from app.models import Iteration, Strategie
@@ -55,11 +55,18 @@ class Partie:
                                             cout_coop_coop,
                                             cout_trahi_coop,
                                             cout_coop_trahi)
+                if choix_strat1.startswith("Erreur:"):
+                    error_msg = choix_strat1.replace("Erreur:", "", 1).strip()
+                    raise RhaiScriptError(self.id_strategie_1, strategie_1.nom, no_iteration + 1, error_msg)
+
                 choix_strat2 = moteurChoix.choix(script2,actions_strat2_str + "]",actions_strat1_str + "]",
                                             cout_trahi_trahi,
                                             cout_coop_coop,
                                             cout_trahi_coop,
                                             cout_coop_trahi)
+                if choix_strat2.startswith("Erreur:"):
+                    error_msg = choix_strat2.replace("Erreur:", "", 1).strip()
+                    raise RhaiScriptError(self.id_strategie_2, strategie_2.nom, no_iteration + 1, error_msg)
                 
                 # Création de l'itération en BD
                 iteration = Iteration(id_partie=self.id_partie,
@@ -78,3 +85,4 @@ class Partie:
             db.commit()
         finally:
             db.close()
+

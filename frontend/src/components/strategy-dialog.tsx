@@ -1,52 +1,15 @@
 import { Save, Lightbulb } from "lucide-react"
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import type { FormEvent } from "react"
+import { useMemo, useState, type FormEvent } from "react"
 import { useStrategy } from "@/hooks/useStrategy"
-
-interface HelpBlock {
-  title: string
-  description: string
-  snippet: string
-}
-
-const HELP_BLOCKS: HelpBlock[] = [
-  {
-    title: "Premier tour",
-    description: "Agir différemment au tout premier coup",
-    snippet: `if history.is_empty() {
-    return "C";
-}`,
-  },
-  {
-    title: "Dernier coup adverse",
-    description: "Lire le dernier coup de l'adversaire",
-    snippet: `let last = history[history.len() - 1];
-if last == "C" { "C" } else { "D" }`,
-  },
-  {
-    title: "A déjà trahi ?",
-    description: "Vérifier si l'adversaire a trahi",
-    snippet: `let betrayed = history.contains("D");
-if betrayed { "D" } else { "C" }`,
-  },
-  {
-    title: "Aléatoire",
-    description: "Choisir au hasard",
-    snippet: `if rand() > 0.5 { "C" } else { "D" }`,
-  },
-  {
-    title: "Compter les coopérations",
-    description: "Boucler sur l'historique",
-    snippet: `let coops = 0;
-for m in history {
-    if m == "C" { coops += 1; }
-}
-if coops > history.len() / 2 { "C" } else { "D" }`,
-  },
-]
+import { StrategyCodeEditor } from "@/components/strategy-code-editor"
+import { HELP_BLOCKS, TOAST_STYLE } from "@/constants"
+import { toast } from "sonner"
+import { validateRhaiScript } from "@/lib/rhai-validation"
+import { validateStrategySyntax } from "@/api/strategies"
+import { ApiError } from "@/api/apiError"
 
 interface StrategyDialogProps {
   open: boolean
@@ -71,6 +34,13 @@ export function StrategyDialog({
     loading: isLoading,
     save,
   } = useStrategy(false, strategyId, open)
+  const syntaxError = useMemo(
+    () => validateRhaiScript(scriptRhai),
+    [scriptRhai]
+  )
+  const [rhaiError, setRhaiError] = useState<string | null>(null)
+  const [isValidatingSyntax, setIsValidatingSyntax] = useState(false)
+  const displayedSyntaxError = syntaxError?.message || rhaiError
 
   function insertSnippet(snippet: string) {
     setScriptRhai((prev: string) => {
@@ -81,17 +51,46 @@ export function StrategyDialog({
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    const success = await save()
-    if (success) {
+    if (syntaxError) {
+      toast.error(syntaxError.message, { style: TOAST_STYLE.error })
+      return
+    }
+
+    setIsValidatingSyntax(true)
+    setRhaiError(null)
+    try {
+      const validationError = await validateStrategySyntax(scriptRhai.trim())
+      if (validationError) {
+        setRhaiError(validationError)
+        toast.error(validationError, { style: TOAST_STYLE.error })
+        return
+      }
+    } catch (error) {
+      console.error("Erreur lors de la validation Rhai :", error)
+      toast.error("Impossible de valider la syntaxe Rhai.")
+      return
+    } finally {
+      setIsValidatingSyntax(false)
+    }
+    try {
+      await save()
       toast.success(
         strategyId
           ? "Stratégie modifiée avec succès."
-          : "Stratégie créée avec succès."
+          : "Stratégie créée avec succès.",
+        { style: TOAST_STYLE.success }
       )
       onSave()
       onOpenChange(false)
-    } else {
-      toast.error("Erreur lors de l'enregistrement de la stratégie.")
+    } catch (err: unknown) {
+      const message =
+        err instanceof ApiError
+          ? err.friendlyMessage
+          : (err as Error).message || "Erreur inconnue"
+      toast.error(
+        `Erreur lors de l'enregistrement de la stratégie : ${message}`,
+        { style: TOAST_STYLE.error }
+      )
     }
   }
 
@@ -101,7 +100,7 @@ export function StrategyDialog({
         showCloseButton
         className={cn(
           "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
-          "w-[95vw] sm:max-w-5xl h-[90vh] max-h-[90vh]",
+          "h-[90vh] max-h-[90vh] w-[95vw] sm:max-w-5xl",
           "flex flex-col gap-0 overflow-hidden p-0",
           "rounded-xl"
         )}
@@ -180,25 +179,24 @@ export function StrategyDialog({
                     Script Rhai
                   </label>
                 </div>
-                <textarea
+                <StrategyCodeEditor
                   id="strategy-code"
                   value={scriptRhai}
-                  onChange={(e) => setScriptRhai(e.target.value)}
-                  required
-                  spellCheck={false}
-                  className={cn(
-                    "min-h-50 w-full flex-1 rounded-md border border-input bg-muted/30",
-                    "resize-none px-3 py-2.5 font-mono text-sm leading-relaxed",
-                    "focus:border-ring focus:ring-2 focus:ring-ring/50 focus:outline-none",
-                    "transition-colors"
-                  )}
-                  style={{ height: "100%" }}
+                  onChange={(value) => {
+                    setRhaiError(null)
+                    setScriptRhai(value)
+                  }}
                 />
+                {displayedSyntaxError && (
+                  <p className="rounded-md border border-destructive/40 bg-destructive/10 px-2.5 py-2 text-xs text-destructive">
+                    {displayedSyntaxError}
+                  </p>
+                )}
                 <p className="text-[11px] text-muted-foreground">
                   La fonction doit retourner{" "}
-                  <code className="rounded bg-muted px-1 font-mono">0</code>{" "}
+                  <code className="rounded bg-muted px-1 font-mono">Choice::COOPERATE</code>{" "}
                   (coopérer) ou{" "}
-                  <code className="rounded bg-muted px-1 font-mono">1</code>{" "}
+                  <code className="rounded bg-muted px-1 font-mono">Choice::BETRAY</code>{" "}
                   (trahir).
                 </p>
               </div>
@@ -207,7 +205,7 @@ export function StrategyDialog({
             {/* Right — blocs d'aide */}
             <aside className="flex w-72 shrink-0 flex-col border-l border-border bg-muted/20">
               {/* Scrollable content */}
-              <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3 min-h-0">
+              <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-4">
                 <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
                   <Lightbulb className="size-4 text-yellow-500" />
                   Blocs d'aide
@@ -241,15 +239,29 @@ export function StrategyDialog({
               </div>
 
               {/* Sticky Footer */}
-              <div className="shrink-0 flex items-center justify-between gap-2 border-t border-border bg-muted/30 px-4 py-3">
+              <div className="flex shrink-0 items-center justify-between gap-2 border-t border-border bg-muted/30 px-4 py-3">
                 <DialogClose asChild>
-                  <Button type="button" variant="outline" className="flex-1 justify-center">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 justify-center"
+                  >
                     Annuler
                   </Button>
                 </DialogClose>
-                <Button type="submit" disabled={isLoading} className="flex-1 justify-center gap-1.5">
+                <Button
+                  type="submit"
+                  disabled={
+                    isLoading || isValidatingSyntax || Boolean(displayedSyntaxError)
+                  }
+                  className="flex-1 justify-center gap-1.5"
+                >
                   <Save className="size-3.5" />
-                  {isLoading ? "Enregistrement..." : "Enregistrer"}
+                  {isValidatingSyntax
+                    ? "Validation..."
+                    : isLoading
+                      ? "Enregistrement..."
+                      : "Enregistrer"}
                 </Button>
               </div>
             </aside>

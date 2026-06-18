@@ -3,19 +3,41 @@ import TournamentConfig from "@/components/tournament-config"
 import TournamentHistory from "@/components/tournament-history"
 import TournamentStats from "@/components/tournament-stats"
 import { useTournament } from "@/hooks/useTournament"
+import type { Tournoi } from "@/type"
 
 const Home = () => {
   const { tournaments, loading, reload } = useTournament(null, true)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [pendingTournament, setPendingTournament] = useState<Tournoi | null>(
+    null
+  )
+
+  const visibleTournaments = pendingTournament
+    ? [pendingTournament, ...tournaments]
+    : tournaments
 
   // Par défaut, on sélectionne le dernier tournoi de la liste (le plus récent)
   const activeTournamentId =
-    selectedId || (tournaments.length > 0 ? tournaments[0].id : null)
+    selectedId === pendingTournament?.id
+      ? null
+      : selectedId || (tournaments.length > 0 ? tournaments[0].id : null)
 
-  const handleTournamentCreated = async () => {
+  const handleTournamentCreated = async (tournoi: Tournoi) => {
     await reload()
-    // Réinitialise selectedId à null pour que le nouveau tournoi soit sélectionné par défaut
-    setSelectedId(null)
+    setPendingTournament(null)
+    setSelectedId(tournoi.id)
+  }
+
+  const handleTournamentCreating = (tournoi: Tournoi) => {
+    setPendingTournament(tournoi)
+    setSelectedId(tournoi.id)
+  }
+
+  const handleTournamentCreationFailed = () => {
+    setPendingTournament(null)
+    setSelectedId((currentId) =>
+      currentId === pendingTournament?.id ? null : currentId
+    )
   }
 
   return (
@@ -30,17 +52,25 @@ const Home = () => {
       </div>
 
       <div className="w-full">
-        <TournamentConfig onTournamentCreated={handleTournamentCreated} />
+        <TournamentConfig
+          onTournamentCreated={handleTournamentCreated}
+          onTournamentCreating={handleTournamentCreating}
+          onTournamentCreationFailed={handleTournamentCreationFailed}
+        />
       </div>
 
       <div className="flex w-full gap-5">
         <TournamentHistory
-          tournaments={tournaments}
-          selectedId={activeTournamentId}
+          tournaments={visibleTournaments}
+          pendingTournamentId={pendingTournament?.id ?? null}
+          selectedId={selectedId || activeTournamentId}
           onSelect={setSelectedId}
-          loading={loading}
+          loading={loading && !pendingTournament}
         />
-        <TournamentStats tournamentId={activeTournamentId} />
+        <TournamentStats
+          tournamentId={activeTournamentId}
+          creating={selectedId === pendingTournament?.id}
+        />
       </div>
     </div>
   )

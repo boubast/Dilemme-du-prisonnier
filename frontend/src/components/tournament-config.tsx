@@ -1,6 +1,6 @@
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Search, X, Play, Plus } from "lucide-react"
-import type { Couts, TournamentConfig } from "@/type"
+import type { Couts, Tournoi, TournamentConfig } from "@/type"
 import { useStrategy } from "@/hooks/useStrategy"
 const DEFAULT_PAYOFFS: Couts = {
   tentation: 5,
@@ -20,13 +20,19 @@ import { PayoffMatrix } from "./payoff-matrix"
 import { Separator } from "./ui/separator"
 import { StrategyDialog } from "./strategy-dialog"
 import { createTournament } from "@/api/tournament"
+import { TOAST_STYLE } from "@/constants"
+import { ApiError } from "@/api/apiError"
 
 interface TournamentConfigProps {
-  onTournamentCreated: () => void
+  onTournamentCreated: (tournoi: Tournoi) => void | Promise<void>
+  onTournamentCreating: (tournoi: Tournoi) => void
+  onTournamentCreationFailed: () => void
 }
 
 export default function TournamentConfig({
   onTournamentCreated,
+  onTournamentCreating,
+  onTournamentCreationFailed,
 }: TournamentConfigProps) {
   const {
     strategies: allStrategies,
@@ -39,6 +45,8 @@ export default function TournamentConfig({
   const [payoffs, setPayoffs] = useState<Couts>(DEFAULT_PAYOFFS)
   const [isLoading, setIsLoading] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
+  const settingsRef = useRef<HTMLDivElement>(null)
+  const [settingsHeight, setSettingsHeight] = useState<number | null>(null)
 
   // Dialog State
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -77,11 +85,17 @@ export default function TournamentConfig({
         try {
           await removeStrategy(id)
           setSelectedIds((prev) => prev.filter((sid) => sid !== id))
-          toast.success("Stratégie supprimée avec succès.")
+          toast.success("Stratégie supprimée avec succès.", {
+            style: TOAST_STYLE.success,
+          })
         } catch (e: unknown) {
-          const err = e as Error
+          const message =
+            e instanceof ApiError
+              ? e.friendlyMessage
+              : (e as Error).message || "Erreur inconnue"
           toast.error(
-            "Erreur lors de la suppression de la stratégie : " + err.message
+            "Erreur lors de la suppression de la stratégie : " + message,
+            { style: TOAST_STYLE.error }
           )
         }
       }
@@ -98,6 +112,26 @@ export default function TournamentConfig({
     setPayoffs((prev) => ({ ...prev, [key]: value }))
   }
 
+  useEffect(() => {
+    const settingsElement = settingsRef.current
+    if (!settingsElement) {
+      return undefined
+    }
+
+    const updateSettingsHeight = () => {
+      setSettingsHeight(settingsElement.offsetHeight)
+    }
+
+    updateSettingsHeight()
+
+    const observer = new ResizeObserver(updateSettingsHeight)
+    observer.observe(settingsElement)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [])
+
   async function handleSubmit() {
     if (selectedIds.length < 2) return
     const config: TournamentConfig = {
@@ -105,23 +139,52 @@ export default function TournamentConfig({
       nb_iterations: nbIterations,
       payoffs,
     }
+    const pendingTournoi: Tournoi = {
+      id: "tournoi-en-calcul",
+      nom: `Tournoi - ${selectedIds.length} stratégies`,
+      parties: [],
+      nb_iterations: nbIterations,
+      couts: payoffs,
+      date_creation: new Date().toLocaleDateString("fr-FR"),
+      meilleure_strategie: "",
+      strategies: selectedStrategies,
+      resultats: {},
+      scores_totaux: {},
+    }
+
     setIsLoading(true)
+    onTournamentCreating(pendingTournoi)
     try {
-      await createTournament(config)
-      toast.success("Tournoi lancé avec succès !")
-      onTournamentCreated()
+      const tournoi = await createTournament(config)
+      toast.success("Tournoi terminé avec succès !", {
+          style: TOAST_STYLE.success,
+      })
+      await onTournamentCreated(tournoi)
     } catch (e: unknown) {
-      const err = e as Error
-      toast.error("Erreur lors du lancement du tournoi : " + err.message)
+      const message =
+        e instanceof ApiError
+          ? e.friendlyMessage
+          : (e as Error).message || "Erreur inconnue"
+      toast.error("Erreur lors du lancement du tournoi : " + message, {
+        style: TOAST_STYLE.error,
+      })
+      onTournamentCreationFailed()
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="flex gap-5">
+    <div className="flex items-start gap-5">
       {/* ── Sélection des stratégies ── */}
-      <section className="flex w-2/3 flex-col gap-3 rounded-xl border border-border bg-card p-4">
+      <section
+        className="flex min-h-0 w-2/3 flex-col gap-3 overflow-hidden rounded-xl border border-border bg-card p-4"
+        style={
+          settingsHeight
+            ? { height: settingsHeight, maxHeight: settingsHeight }
+            : undefined
+        }
+      >
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -185,16 +248,18 @@ export default function TournamentConfig({
 
         {/* Liste des stratégies disponibles */}
         {availableStrategies.length > 0 ? (
-          <div className="grid grid-cols-2 gap-2">
-            {availableStrategies.map((s) => (
-              <StrategyCard
-                key={s.id}
-                strategie={s}
-                onSelect={handleSelect}
-                onEdit={handleEditStrategy}
-                onDelete={handleDeleteStrategy}
-              />
-            ))}
+          <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+            <div className="grid grid-cols-2 gap-2">
+              {availableStrategies.map((s) => (
+                <StrategyCard
+                  key={s.id}
+                  strategie={s}
+                  onSelect={handleSelect}
+                  onEdit={handleEditStrategy}
+                  onDelete={handleDeleteStrategy}
+                />
+              ))}
+            </div>
           </div>
         ) : (
           <p className="py-4 text-center text-xs text-muted-foreground">
@@ -209,7 +274,7 @@ export default function TournamentConfig({
         </div>
       </section>
 
-      <div className="flex w-1/3 flex-col gap-5">
+      <div ref={settingsRef} className="flex w-1/3 flex-col gap-5">
         {/* ── Paramètres ── */}
         <section className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4">
           <h2 className="text-sm font-semibold text-foreground">Paramètres</h2>
