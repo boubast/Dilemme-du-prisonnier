@@ -10,8 +10,9 @@ from app.models.tournament_classic import TournamentClassic
 from app.models.tournament_multi import TournamentMulti
 from app.schemas.tournament import TournamentLaunchCreate,TournamentMultiLaunchCreate, TournamentDetailRead, TournamentListRead
 from app.tournoi import Tournoi as TournoiMoteur
-#from app.tournoi_multi import Tournoi_multi as TournoiMultiMoteur
+from app.tournoi_multi import Tournoi_multi as TournoiMultiMoteur
 from app.database import SessionLocal
+from app.models.types.type_tournoi import Type_tournoi
 
 router = APIRouter(prefix="/tournament", tags=["tournament"])
 
@@ -22,8 +23,8 @@ def list_tournaments(db: Session = Depends(get_db)) -> list[Tournament]:
     return list(db.scalars(select(Tournament).order_by(Tournament.id_tournoi.desc())))
 
 
-@router.get("/{tournoi_id}", response_model=TournamentDetailRead)
-def get_tournament(tournoi_id: int, db: Session = Depends(get_db)) -> TournamentClassic:
+@router.get("/{type_tournoi}/{tournoi_id}", response_model=TournamentDetailRead)
+def get_tournament(type_tournoi:Type_tournoi, tournoi_id: int, db: Session = Depends(get_db)) -> TournamentClassic:
 
     global lastTournamentStatistics
 
@@ -89,8 +90,6 @@ async def launch_tournament(payload: TournamentLaunchCreate) -> TournoiMoteur:
 
     return response
 
-# TODO : lancement tournoi multi
-"""
 @router.post(
     "/launch_multi",
     response_model=TournamentDetailRead,
@@ -100,11 +99,11 @@ async def launch_tournament(payload: TournamentMultiLaunchCreate) -> TournoiMult
 
     global lastTournamentStatistics
 
-    tournoi = TournoiMultiMoteur.create_tournoi(payload.duree,
+    tournoi = TournoiMultiMoteur.create_tournoi(payload.duree_secondes,
                             payload.strategie_ids)
 
     try:
-        response = await tournoi.execute_async()
+        response = tournoi.execute()
     except Exception as e:
         db = SessionLocal()
         try:
@@ -117,8 +116,7 @@ async def launch_tournament(payload: TournamentMultiLaunchCreate) -> TournoiMult
             db.close()
         raise e
 
-    tournoi.generer_statistiques()
-    lastTournamentStatistics = tournoi
+    response.generer_statistiques()
+    lastTournamentStatistics = response
 
     return response
-"""

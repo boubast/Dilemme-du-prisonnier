@@ -8,15 +8,17 @@ from app.models import Tournament as TournoiModel
 from app.models import TournamentClassic as TournoiClassicModel
 from app.models import Partie as PartieModel
 from app.database import SessionLocal
+from app.ITournoi import ITournoi
 
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 
-class Tournoi:
-    id_tournoi: int
+class Tournoi(ITournoi):
 
     def __init__(self,id_tournoi):
+        super().__init__()
+
         self.date_creation = ""
         self.meilleure_strategie = ""
         self.resultats = {}
@@ -25,9 +27,6 @@ class Tournoi:
         self.participations = []
         self.strategie_ids = []
         self.type_tournoi = "Classique"
-
-        self.duree_secondes = None
-        self.participations_multi = None
 
         # Récupérer un tournoi de la BD
         db = SessionLocal()
@@ -86,13 +85,13 @@ class Tournoi:
             db.commit()
             db.refresh(tournoi)
 
-            tournoi_multi = TournoiClassicModel(id_tournoi=tournoi.id_tournoi,
+            tournoi_classic = TournoiClassicModel(id_tournoi=tournoi.id_tournoi,
                                nb_iterations=nb_iterations,
                                cout_coop_coop=cout_coop_coop,
                                cout_coop_trahi=cout_coop_trahi,
                                cout_trahi_coop=cout_trahi_coop,
                                cout_trahi_trahi=cout_trahi_trahi)
-            db.add(tournoi_multi)
+            db.add(tournoi_classic)
 
             # Création des participations (lien tournoi - stratégie) en BD
             for id_strategie in strategie_ids:
@@ -160,8 +159,6 @@ class Tournoi:
                 elif score_strategie_1 < score_strategie_2:
                     self.resultats[partie.id_strategie_1]["D"]+=1
                     self.resultats[partie.id_strategie_2]["V"]+=1
-                
-                #self.parties.append(partie)
             
             # Calcul et sauvegarde de la meilleure stratégie
             max_score = 0

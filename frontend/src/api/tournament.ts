@@ -33,10 +33,11 @@ export async function fetchTournaments(): Promise<Tournoi[]> {
  * Récupère le détail d'un tournoi par son identifiant.
  */
 export async function fetchTournamentById(
-  id: string
+  id: string,
+  type: string
 ): Promise<Tournoi | undefined> {
   try {
-    const response = await fetch(`${API_URL}/tournament/${id}`)
+    const response = await fetch(`${API_URL}/tournament/${type}/${id}`)
 
     if (response.status === 404) {
       return undefined
