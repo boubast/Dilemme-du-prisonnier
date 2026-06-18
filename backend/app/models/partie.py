@@ -20,7 +20,7 @@ class Partie(Base):
     )
     id_tournoi: Mapped[int] = mapped_column(
         BigInteger,
-        ForeignKey("tournoi.id_tournoi", ondelete="CASCADE"),
+        ForeignKey("tournoi_classique.id_tournoi", ondelete="CASCADE"),
         nullable=False,
     )
 
@@ -34,7 +34,7 @@ class Partie(Base):
         foreign_keys=[id_strategie_2],
         back_populates="parties_comme_strategie_2",
     )
-    tournoi: Mapped["Tournoi"] = relationship("Tournoi", back_populates="parties")
+    tournoi: Mapped["TournamentClassic"] = relationship("TournamentClassic", back_populates="parties")
     iterations: Mapped[list["Iteration"]] = relationship(
         "Iteration",
         back_populates="partie",
