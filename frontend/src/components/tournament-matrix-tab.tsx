@@ -50,7 +50,7 @@ export default function TournamentMatrixTab({
           <thead>
             <tr className="border-b border-border bg-muted/20">
               {/* Case vide en haut à gauche */}
-              <th className="sticky left-0 z-20 max-w-45 min-w-35 truncate border-r border-border bg-muted/80 px-3 py-3 font-semibold tracking-wider text-muted-foreground uppercase">
+              <th className="sticky left-0 z-20 max-w-45 min-w-35 truncate border-r border-border bg-muted px-3 py-3 font-semibold tracking-wider text-muted-foreground uppercase">
                 Ligne (Y) \ Col (X)
               </th>
               {/* En-têtes des colonnes (Stratégies) */}
