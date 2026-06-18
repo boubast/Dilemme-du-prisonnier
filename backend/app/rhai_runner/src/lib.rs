@@ -5,17 +5,17 @@ use std::env;
 pub extern "C" fn choix() -> String {
 
     // Script Rhai à exécuter
-    let script = env::args().nth(1).expect("missing script");
+    let script = env::args().nth(1).expect("script manquant");
 
     // Variables outils : état de la partie
-    let derniers_coups_strategie_courante = env::args().nth(2).expect("missing action history 1");
-    let derniers_coups_strategie_adverse = env::args().nth(3).expect("missing action history 2");
+    let derniers_coups_strategie_courante = env::args().nth(2).expect("derniers coups 1 manquant");
+    let derniers_coups_strategie_adverse = env::args().nth(3).expect("derniers coups 2 manquant");
 
     // Variables outils : coûts des interactions
-    let cout_trahison = env::args().nth(4).expect("missing payoff 1");
-    let cout_cooperation = env::args().nth(5).expect("missing payoff 2");
-    let cout_trahison_cooperation = env::args().nth(6).expect("missing payoff 3");
-    let cout_cooperation_trahison = env::args().nth(7).expect("missing payoff 4");
+    let cout_trahison = env::args().nth(4).expect("coût 1 manquant");
+    let cout_cooperation = env::args().nth(5).expect("coût 2 manquant");
+    let cout_trahison_cooperation = env::args().nth(6).expect("coût 3 manquant");
+    let cout_cooperation_trahison = env::args().nth(7).expect("coût 4 manquant");
 
     println!(" - Running - "); 
 
@@ -38,9 +38,9 @@ pub extern "C" fn choix() -> String {
         Ok(result) => {result.to_string()},
         // Erreur lors de l'exécution
         Err(err) => {
-            println!("Error: {err}");
-            eprintln!("Error: {err}");
-            "error".to_string()
+            println!("Erreur: {err}");
+            eprintln!("Erreur: {err}");
+            "erreur".to_string()
         },
     }
 }

@@ -144,7 +144,7 @@ export default function TournamentConfig({
       parties: [],
       nb_iterations: nbIterations,
       couts: payoffs,
-      date_creation: new Date().toLocaleDateString("en-US"),
+      date_creation: new Date().toLocaleDateString("fr-FR"),
       meilleure_strategie: "",
       strategies: selectedStrategies,
       resultats: {},

@@ -56,8 +56,8 @@ fn main() -> Result<(), Box<EvalAltResult>> {
         Ok(result) => {println!("{result}");Ok(())},
         // Erreur lors de l'exécution
         Err(err) => {
-            print!("Error: {err}");
-            eprintln!("Error: {err}");
+            print!("Erreur: {err}");
+            eprintln!("Erreur: {err}");
             Ok(())
         },
     }

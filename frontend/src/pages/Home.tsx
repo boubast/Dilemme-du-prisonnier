@@ -43,7 +43,7 @@ const Home = () => {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-4xl font-bold">Axelrod Tournament</h1>
+        <h1 className="text-4xl font-bold">Axelrod's Tournament</h1>
         <p className="text-sm text-gray-700">
           An experimental environment for the prisoner's dilemma. Configure an
           experiment, pit your strategies against each other, and analyze the

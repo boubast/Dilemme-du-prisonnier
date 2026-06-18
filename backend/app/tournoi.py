@@ -38,7 +38,7 @@ class Tournoi:
             )
             tournoiBD = db.scalars(stmt).first()
             if tournoiBD is None:
-                raise ValueError("Tournament not found")
+                raise ValueError("Tournoi introuvable")
             
             stmt = (
                 select(TournoiClassicModel)
@@ -52,7 +52,7 @@ class Tournoi:
             )
             tournoiClassicBD = db.scalars(stmt).first()
             if tournoiClassicBD is None:
-                raise ValueError("Tournament not found")
+                raise ValueError("Tournoi introuvable")
 
             self.participations = tournoiClassicBD.participations
             self.parties = tournoiClassicBD.parties

@@ -206,8 +206,7 @@ export function validateRhaiScript(script: string): RhaiSyntaxError | null {
     const prefix = beforeElse?.[0] ?? ""
     const lineNumber = prefix.split("\n").length
     const lastLineBreak = prefix.lastIndexOf("\n")
-    const column =
-      lastLineBreak === -1 ? prefix.length + 1 : prefix.length - lastLineBreak
+    const column = lastLineBreak === -1 ? prefix.length + 1 : prefix.length - lastLineBreak
 
     return makeError(
       `A Rhai script cannot start with "else"; it must follow an "if" block.`,
