@@ -32,7 +32,7 @@ export default function TournamentMatrixTab({
   return (
     <div className="flex animate-in flex-col gap-4 py-2 duration-150 fade-in">
       {/* En-tête et description */}
-      <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-sm font-semibold text-foreground">
             Matrice des confrontations
@@ -50,14 +50,14 @@ export default function TournamentMatrixTab({
           <thead>
             <tr className="border-b border-border bg-muted/20">
               {/* Case vide en haut à gauche */}
-              <th className="sticky left-0 z-20 max-w-[180px] min-w-[140px] truncate border-r border-border bg-gray-100 px-3 py-3 font-semibold tracking-wider text-muted-foreground uppercase">
+              <th className="sticky left-0 z-20 max-w-45 min-w-35 truncate border-r border-border bg-muted/80 px-3 py-3 font-semibold tracking-wider text-muted-foreground uppercase">
                 Ligne (Y) \ Col (X)
               </th>
               {/* En-têtes des colonnes (Stratégies) */}
               {sortedStrategies.map((s) => (
                 <th
                   key={s.id}
-                  className="max-w-[120px] min-w-[90px] truncate border-r border-border px-2 py-3 text-center font-semibold tracking-wider text-muted-foreground uppercase"
+                  className="max-w-30 min-w-22.5 truncate border-r border-border px-2 py-3 text-center font-semibold tracking-wider text-muted-foreground uppercase"
                   title={s.nom}
                 >
                   {s.nom}
@@ -70,7 +70,7 @@ export default function TournamentMatrixTab({
               <tr key={y.id} className="transition-colors hover:bg-muted/5">
                 {/* En-tête de ligne sticky sur la gauche */}
                 <td
-                  className="sticky left-0 z-10 max-w-[180px] min-w-[140px] truncate border-r border-b border-border bg-card px-3 py-2.5 font-medium text-foreground shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]"
+                  className="sticky left-0 z-10 max-w-45 min-w-35 truncate border-r border-b border-border bg-card px-3 py-2.5 font-medium text-foreground shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]"
                   title={y.nom}
                 >
                   {y.nom}
@@ -113,6 +113,7 @@ export default function TournamentMatrixTab({
                     ? match.scoreStrategie2
                     : match.scoreStrategie1
                   const won = scoreY > scoreX
+                  const isTie = scoreY === scoreX
 
                   return (
                     <td
@@ -121,9 +122,11 @@ export default function TournamentMatrixTab({
                         "cursor-default border-r border-b border-border py-2.5 text-center font-mono font-semibold transition-all duration-150 select-all",
                         won
                           ? "bg-blue-500/5 text-blue-600 hover:bg-blue-500/10 dark:text-blue-400"
-                          : "bg-red-500/5 text-red-600 hover:bg-red-500/10 dark:text-red-400"
+                          : isTie
+                            ? "bg-muted/30 text-muted-foreground hover:bg-muted/50"
+                            : "bg-red-500/5 text-red-600 hover:bg-red-500/10 dark:text-red-400"
                       )}
-                      title={`${y.nom} (Y) vs ${x.nom} (X)\nScore Y : ${scoreY}\nScore X : ${scoreX}\nRésultat : ${won ? "Victoire" : scoreY === scoreX ? "Match Nul" : "Défaite"}`}
+                      title={`${y.nom} (Y) vs ${x.nom} (X)\nScore Y : ${scoreY}\nScore X : ${scoreX}\nRésultat : ${won ? "Victoire" : isTie ? "Match Nul" : "Défaite"}`}
                     >
                       {scoreY}
                     </td>
