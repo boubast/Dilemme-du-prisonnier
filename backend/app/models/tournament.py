@@ -3,13 +3,9 @@ from datetime import date
 from sqlalchemy import BigInteger, Date, Identity, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import ENUM as pgEnum
-from enum import Enum
+from app.models import Type_tournoi
 
 from app.database import Base
-
-class Type_tournoi (str,Enum):
-    Classique = 'Classique'
-    Multi = 'Multi'
 
 Type_tournoiPG: pgEnum = pgEnum(
     Type_tournoi,

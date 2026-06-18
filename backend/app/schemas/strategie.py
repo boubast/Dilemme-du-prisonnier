@@ -1,16 +1,12 @@
 import re
-from enum import Enum
 from typing import Any
+from app.models import Type_tournoi
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 def remove_script_line_breaks(script: str) -> str:
     return re.sub(r"\s*[\r\n]+\s*", " ", script).strip()
-
-class Type_tournoi (str,Enum):
-    Classique = 'Classique'
-    Multi = 'Multi'
 
 class StrategieBase(BaseModel):
     nom: str = Field(..., min_length=1, max_length=255)

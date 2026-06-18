@@ -1,13 +1,9 @@
 from datetime import date
-from enum import Enum
+from app.models import Type_tournoi
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
 from app.schemas.strategie import StrategieDetailRead
-
-class Type_tournoi (str,Enum):
-    Classique = 'Classique'
-    Multi = 'Multi'
 
 class TournamentLaunchCreate(BaseModel):
     strategie_ids: list[int] = Field(..., min_length=2)
