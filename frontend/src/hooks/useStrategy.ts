@@ -142,7 +142,8 @@ function formatRhaiScriptForEditor(script: string) {
 export function useStrategy(
   autoLoadList = false,
   strategyId: string | null = null,
-  open = false
+  open = false,
+  defaultType = "Classique"
 ) {
   const [strategies, setStrategies] = useState<Strategie[]>([])
   const [loading, setLoading] = useState(false)
@@ -151,7 +152,7 @@ export function useStrategy(
   const [nom, setNom] = useState("")
   const [explication, setExplication] = useState("")
   const [scriptRhai, setScriptRhai] = useState("")
-  const [typeTournoi, setTypeTournoi] = useState("Classique")
+  const [typeTournoi, setTypeTournoi] = useState(defaultType)
 
   const reload = useCallback(async () => {
     setLoading(true)
@@ -163,7 +164,7 @@ export function useStrategy(
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [typeTournoi])
 
   // Charge la liste complète si requis
   useEffect(() => {
@@ -198,9 +199,9 @@ export function useStrategy(
       setNom("")
       setExplication("")
       setScriptRhai("")
-      setTypeTournoi("")
+      setTypeTournoi(defaultType)
     }
-  }, [open, strategyId])
+  }, [open, strategyId, defaultType])
 
   const addStrategy = useCallback(
     async (strategy: Omit<Strategie, "id">) => {
@@ -257,7 +258,7 @@ export function useStrategy(
     } finally {
       setLoading(false)
     }
-  }, [strategyId, nom, explication, scriptRhai, addStrategy, editStrategy])
+  }, [strategyId, nom, explication, scriptRhai, typeTournoi, addStrategy, editStrategy])
 
   return {
     strategies,

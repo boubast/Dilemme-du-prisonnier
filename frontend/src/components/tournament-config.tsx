@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Search, X, Play, Plus } from "lucide-react"
-import type { Couts, Tournoi, TournamentConfig, TournamentMode } from "@/type"
+import type { Couts, Tournoi, TournamentConfig, TournamentType } from "@/type"
 import { useStrategy } from "@/hooks/useStrategy"
-import { MOCK_MULTI_STRATEGIES } from "@/mocks"
 const DEFAULT_PAYOFFS: Couts = {
   tentation: 5,
   recompense: 3,
@@ -25,14 +24,14 @@ import { TOAST_STYLE } from "@/constants"
 import { ApiError } from "@/api/apiError"
 
 interface TournamentConfigProps {
-  mode: TournamentMode
+  type: TournamentType
   onTournamentCreated: (tournoi: Tournoi) => void | Promise<void>
   onTournamentCreating: (tournoi: Tournoi) => void
   onTournamentCreationFailed: () => void
 }
 
 export default function TournamentConfig({
-  mode,
+  type,
   onTournamentCreated,
   onTournamentCreating,
   onTournamentCreationFailed,
@@ -41,6 +40,7 @@ export default function TournamentConfig({
     strategies: allStrategies,
     reload: loadStrategies,
     removeStrategy,
+    setTypeTournoi,
   } = useStrategy(true)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [search, setSearch] = useState("")
@@ -58,24 +58,25 @@ export default function TournamentConfig({
     null
   )
 
+  // Sync hook's strategy type filter with the tournament configuration type
+  useEffect(() => {
+    setTypeTournoi(type)
+  }, [type, setTypeTournoi])
+
   // Reset selections when game mode changes
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedIds([])
     setSearch("")
-  }, [mode])
+  }, [type])
 
-  // Filter strategies based on current game mode
-  const filteredAllStrategies =
-    mode === "multi" ? MOCK_MULTI_STRATEGIES : allStrategies
-
-  // Stratégies sélectionnées (objets complets)
-  const selectedStrategies = filteredAllStrategies.filter((s) =>
+  // Selected strategies
+  const selectedStrategies = allStrategies.filter((s) =>
     selectedIds.includes(s.id)
   )
 
-  // Stratégies disponibles = non sélectionnées + filtre recherche
-  const availableStrategies = filteredAllStrategies.filter(
+  // Available strategies (not selected + match search)
+  const availableStrategies = allStrategies.filter(
     (s) =>
       !selectedIds.includes(s.id) &&
       s.nom.toLowerCase().includes(search.toLowerCase())
@@ -149,22 +150,20 @@ export default function TournamentConfig({
   async function handleSubmit() {
     if (selectedIds.length < 2) return
     const config: TournamentConfig = {
-      mode,
+      type,
       strategies_ids: selectedIds,
-      nb_iterations: nbIterations,
-      duration_seconds: durationSeconds,
-      payoffs,
+      nb_iterations: type === "Classique" ? nbIterations : undefined,
+      duration_seconds: type === "Multi" ? durationSeconds : undefined,
+      payoffs: type === "Classique" ? payoffs : undefined,
     }
     const pendingTournoi: Tournoi = {
       id: "tournoi-en-calcul",
       nom: `Tournament - ${selectedIds.length} strategies`,
       parties: [],
-      nb_iterations: mode === "classic" ? nbIterations : 0,
-      duration_seconds: mode === "multi" ? durationSeconds : undefined,
+      nb_iterations: type === "Classique" ? nbIterations : 0,
+      duration_seconds: type === "Multi" ? durationSeconds : undefined,
       couts: payoffs,
-      date_creation: new Date().toLocaleDateString(
-        mode === "classic" ? "fr-FR" : "en-US"
-      ),
+      date_creation: new Date().toLocaleDateString("fr-FR"),
       meilleure_strategie: "",
       strategies: selectedStrategies,
       resultats: {},
@@ -183,8 +182,8 @@ export default function TournamentConfig({
       const message =
         e instanceof ApiError
           ? e.friendlyMessage
-          : (e as Error).message || "Unknown error"
-      toast.error("Could not start the tournament: " + message, {
+          : (e as Error).message || "Erreur inconnue"
+      toast.error("Error launching tournament: " + message, {
         style: TOAST_STYLE.error,
       })
       onTournamentCreationFailed()
@@ -270,15 +269,12 @@ export default function TournamentConfig({
           <div className="min-h-0 flex-1 overflow-y-auto pr-1">
             <div className="grid grid-cols-2 gap-2">
               {availableStrategies.map((s) => (
-                // TODO: Supprimer la condition sur le mode une fois que l'édition/suppression est disponible pour le mode multi
                 <StrategyCard
                   key={s.id}
                   strategie={s}
                   onSelect={handleSelect}
-                  onEdit={mode === "classic" ? handleEditStrategy : undefined}
-                  onDelete={
-                    mode === "classic" ? handleDeleteStrategy : undefined
-                  }
+                  onEdit={handleEditStrategy}
+                  onDelete={handleDeleteStrategy}
                 />
               ))}
             </div>
@@ -308,18 +304,18 @@ export default function TournamentConfig({
                 htmlFor="nb-iterations"
                 className="text-xs font-medium text-foreground"
               >
-                Number of iterations
+                Duration (seconds)
               </label>
             </div>
             <input
               id="nb-iterations"
               type="number"
               min={1}
-              max={mode === "classic" ? 10000 : 3600}
-              value={mode === "classic" ? nbIterations : durationSeconds}
+              max={type === "Classique" ? 10000 : 3600}
+              value={type === "Classique" ? nbIterations : durationSeconds}
               onChange={(e) => {
                 const val = Math.max(1, Number(e.target.value))
-                if (mode === "classic") {
+                if (type === "Classique") {
                   setNbIterations(val)
                 } else {
                   setDurationSeconds(val)
@@ -332,7 +328,7 @@ export default function TournamentConfig({
               )}
             />
             <p className="text-[11px] text-muted-foreground">
-              Rounds played for each pair of strategies.
+              Total execution time allowed for the multiplayer tournament.
             </p>
           </div>
         </section>
@@ -396,6 +392,7 @@ export default function TournamentConfig({
         onOpenChange={setIsDialogOpen}
         strategyId={editingStrategyId}
         onSave={loadStrategies}
+        defaultType={type}
       />
     </div>
   )

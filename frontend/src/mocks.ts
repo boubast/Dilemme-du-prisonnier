@@ -6,14 +6,14 @@ export const MOCK_MULTI_STRATEGIES: Strategie[] = [
     nom: "Always Cooperate (Multi)",
     explication: "Always cooperates in multiplayer matches.",
     script_rhai: "return Choice::COOPERATE;",
-    mode: "multi",
+    type: "Multi",
   },
   {
     id: "multi-betray",
     nom: "Always Betray (Multi)",
     explication: "Always defects in multiplayer matches.",
     script_rhai: "return Choice::BETRAY;",
-    mode: "multi",
+    type: "Multi",
   },
   {
     id: "multi-majority",
@@ -21,7 +21,7 @@ export const MOCK_MULTI_STRATEGIES: Strategie[] = [
     explication:
       "Cooperates if the majority of opponents cooperated in the last turn.",
     script_rhai: "return Choice::COOPERATE;",
-    mode: "multi",
+    type: "Multi",
   },
   {
     id: "multi-titfortat",
@@ -29,7 +29,7 @@ export const MOCK_MULTI_STRATEGIES: Strategie[] = [
     explication:
       "Cooperates first, then replicates the choice of the most common opponent action.",
     script_rhai: "return Choice::COOPERATE;",
-    mode: "multi",
+    type: "Multi",
   },
 ]
 
@@ -37,7 +37,7 @@ export const MOCK_MULTI_TOURNAMENTS: Tournoi[] = [
   {
     id: "multi-tournoi-1",
     nom: "Multi Arena Alpha",
-    mode: "multi",
+    type: "Multi",
     parties: [],
     nb_iterations: 0,
     duration_seconds: 15,

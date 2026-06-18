@@ -64,6 +64,7 @@ export async function createStrategy(
         nom: strategy.nom,
         explication: strategy.explication,
         script_rhai: strategy.script_rhai,
+        type_strategie: strategy.type,
       }),
     })
 
@@ -120,6 +121,7 @@ export async function updateStrategy(
         nom: strategy.nom,
         explication: strategy.explication,
         script_rhai: strategy.script_rhai,
+        type_strategie: strategy.type,
       }),
     })
 

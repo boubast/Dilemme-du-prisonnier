@@ -4,12 +4,12 @@ import TournamentHistory from "@/components/tournament-history"
 import TournamentStats from "@/components/tournament-stats"
 import { useTournament } from "@/hooks/useTournament"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import type { Tournoi, TournamentMode } from "@/type"
+import type { Tournoi, TournamentType } from "@/type"
 
 const Home = () => {
   const { tournaments, loading, reload } = useTournament(null, true)
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [mode, setMode] = useState<TournamentMode>("classic")
+  const [type, setType] = useState<TournamentType>("Classique")
   const [pendingTournament, setPendingTournament] = useState<Tournoi | null>(
     null
   )
@@ -55,19 +55,19 @@ const Home = () => {
 
       <div className="w-full flex flex-col gap-4">
         <Tabs
-          value={mode}
-          onValueChange={(val) => setMode(val as TournamentMode)}
+          value={type}
+          onValueChange={(val) => setType(val as TournamentType)}
           className="w-fit"
         >
           <TabsList className="w-fit shrink-0 rounded-lg bg-muted p-0.75">
             <TabsTrigger
-              value="classic"
+              value="Classique"
               className="cursor-pointer px-4 py-1.5 text-xs font-semibold"
             >
               Classic
             </TabsTrigger>
             <TabsTrigger
-              value="multi"
+              value="Multi"
               className="cursor-pointer px-4 py-1.5 text-xs font-semibold"
             >
               Multi
@@ -76,7 +76,7 @@ const Home = () => {
         </Tabs>
 
         <TournamentConfig
-          mode={mode}
+          type={type}
           onTournamentCreated={handleTournamentCreated}
           onTournamentCreating={handleTournamentCreating}
           onTournamentCreationFailed={handleTournamentCreationFailed}

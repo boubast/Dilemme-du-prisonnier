@@ -8,6 +8,7 @@ from app.models.partie import Partie
 from app.models.tournament import Tournament
 from app.models.tournament_classic import TournamentClassic
 from app.models.tournament_multi import TournamentMulti
+from app.models.participation_multi import ParticipationMulti
 from app.schemas.tournament import TournamentLaunchCreate,TournamentMultiLaunchCreate, TournamentDetailRead, TournamentListRead
 from app.tournoi import Tournoi as TournoiMoteur
 from app.tournoi_multi import Tournoi_multi as TournoiMultiMoteur
@@ -24,32 +25,51 @@ def list_tournaments(db: Session = Depends(get_db)) -> list[Tournament]:
 
 
 @router.get("/{type_tournoi}/{tournoi_id}", response_model=TournamentDetailRead)
-def get_tournament(type_tournoi:Type_tournoi, tournoi_id: int, db: Session = Depends(get_db)) -> TournamentClassic:
+def get_tournament(type_tournoi:Type_tournoi, tournoi_id: int, db: Session = Depends(get_db)):
 
     global lastTournamentStatistics
 
     if lastTournamentStatistics is None or lastTournamentStatistics.id_tournoi != tournoi_id :
 
-        stmt = (
-            select(TournamentClassic)
-            .where(TournamentClassic.id_tournoi == tournoi_id)
-            .options(
-                selectinload(TournamentClassic.parties).selectinload(Partie.iterations),
-                selectinload(TournamentClassic.parties).selectinload(Partie.strategie_1),
-                selectinload(TournamentClassic.parties).selectinload(Partie.strategie_2),
-                selectinload(TournamentClassic.participations).selectinload(Participation.strategie),
+        if type_tournoi == Type_tournoi.Multi:
+            stmt = (
+                select(TournamentMulti)
+                .where(TournamentMulti.id_tournoi == tournoi_id)
+                .options(
+                    selectinload(TournamentMulti.participations).selectinload(ParticipationMulti.strategie),
+                )
             )
-        )
-        tournoi = db.scalars(stmt).first()
+            tournoi = db.scalars(stmt).first()
 
-        if tournoi is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Tournoi introuvable",
+            if tournoi is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Tournoi introuvable",
+                )
+            tournoiStats = TournoiMultiMoteur(tournoi.id_tournoi)
+            tournoiStats.generer_statistiques()
+            return tournoiStats
+        else:
+            stmt = (
+                select(TournamentClassic)
+                .where(TournamentClassic.id_tournoi == tournoi_id)
+                .options(
+                    selectinload(TournamentClassic.parties).selectinload(Partie.iterations),
+                    selectinload(TournamentClassic.parties).selectinload(Partie.strategie_1),
+                    selectinload(TournamentClassic.parties).selectinload(Partie.strategie_2),
+                    selectinload(TournamentClassic.participations).selectinload(Participation.strategie),
+                )
             )
-        tournoiStats = TournoiMoteur(tournoi.id_tournoi)
-        tournoiStats.generer_statistiques()
-        return tournoiStats
+            tournoi = db.scalars(stmt).first()
+
+            if tournoi is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Tournoi introuvable",
+                )
+            tournoiStats = TournoiMoteur(tournoi.id_tournoi)
+            tournoiStats.generer_statistiques()
+            return tournoiStats
 
     else :
         return lastTournamentStatistics

@@ -17,6 +17,7 @@ interface StrategyDialogProps {
   onOpenChange: (open: boolean) => void
   strategyId: string | null
   onSave: () => void
+  defaultType?: string
 }
 
 export function StrategyDialog({
@@ -24,6 +25,7 @@ export function StrategyDialog({
   onOpenChange,
   strategyId,
   onSave,
+  defaultType = "Classique",
 }: StrategyDialogProps) {
   const {
     nom,
@@ -32,9 +34,11 @@ export function StrategyDialog({
     setExplication,
     scriptRhai,
     setScriptRhai,
+    typeTournoi,
+    setTypeTournoi,
     loading: isLoading,
     save,
-  } = useStrategy(false, strategyId, open)
+  } = useStrategy(false, strategyId, open, defaultType)
   const syntaxError = useMemo(
     () => validateRhaiScript(scriptRhai),
     [scriptRhai]
@@ -167,6 +171,28 @@ export function StrategyDialog({
                     "transition-colors"
                   )}
                 />
+              </div>
+
+              {/* Type de tournoi */}
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="strategy-type"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Type de tournoi
+                </label>
+                <select
+                  id="strategy-type"
+                  value={typeTournoi}
+                  onChange={(e) => setTypeTournoi(e.target.value)}
+                  required
+                  className={cn(
+                    "w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm focus:border-ring focus:ring-2 focus:ring-ring/50 focus:outline-none transition-colors"
+                  )}
+                >
+                  <option value="Classique">Classique</option>
+                  <option value="Multi">Multi</option>
+                </select>
               </div>
 
               {/* Script Rhai */}

@@ -1,4 +1,4 @@
-export type TournamentMode = "classic" | "multi"
+export type TournamentType = "Classique" | "Multi"
 
 export type Strategie = {
   id: string
@@ -33,7 +33,7 @@ type VND = {
 export type Tournoi = {
   id: string
   nom: string
-  mode?: TournamentMode
+  type?: TournamentType
   parties: Partie[]
   nb_iterations: number
   duration_seconds?: number
@@ -63,11 +63,11 @@ export type Couts = {
 }
 
 export type TournamentConfig = {
-  mode: TournamentMode
+  type: TournamentType
   strategies_ids: string[]
-  nb_iterations: number
+  nb_iterations?: number
   duration_seconds?: number
-  payoffs: Couts
+  payoffs?: Couts
 }
 
 export interface HelpBlock {

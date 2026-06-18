@@ -84,7 +84,7 @@ export default function TournamentStats({
   // Trie les stratégies par score total décroissant
   stats.sort((a, b) => b.scoreTotal - a.scoreTotal)
 
-  const isMulti = tournament.mode === "multi"
+  const isMulti = tournament.type === "Multi"
 
   return (
     <section className="flex min-h-120 w-2/3 flex-col gap-4 rounded-xl border border-border bg-card p-5">
@@ -100,18 +100,18 @@ export default function TournamentStats({
             variant="secondary"
             className={cn(
               "h-5 border-none px-2 text-[10px] font-medium uppercase",
-              tournament.mode === "multi"
+              tournament.type === "Multi"
                 ? "bg-purple-500/15 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400"
                 : "bg-zinc-500/15 text-zinc-600 dark:bg-zinc-500/20 dark:text-zinc-400"
             )}
           >
-            {tournament.mode === "multi" ? "Multi" : "Classic"}
+            {tournament.type === "Multi" ? "Multi" : "Classique"}
           </Badge>
           <Badge
             variant="secondary"
             className="h-5 border-none bg-muted px-2 text-[10px] font-medium text-muted-foreground"
           >
-            {tournament.mode === "multi"
+            {tournament.type === "Multi"
               ? `${tournament.duration_seconds} seconds`
               : `${tournament.nb_iterations} itérations`}
           </Badge>
