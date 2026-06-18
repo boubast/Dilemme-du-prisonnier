@@ -238,8 +238,8 @@ const configureRhai: BeforeMount = (monaco) => {
     enumVariants: ["COOPERATE", "BETRAY"],
     properties: ["value", "field_0", "field_1", "len"],
     variables: [
-      "derniers_coups_strategie_courante",
-      "derniers_coups_strategie_adverse",
+      "last_current_stokes",
+      "last_opposing_stokes",
       "cout_trahison",
       "cout_cooperation",
       "cout_trahison_cooperation",
