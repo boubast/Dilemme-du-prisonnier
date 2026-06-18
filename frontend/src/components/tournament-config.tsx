@@ -304,7 +304,9 @@ export default function TournamentConfig({
                 htmlFor="nb-iterations"
                 className="text-xs font-medium text-foreground"
               >
-                Duration (seconds)
+                {type === "Classique"
+                  ? "Number of iterations"
+                  : "Duration (seconds)"}
               </label>
             </div>
             <input
@@ -328,7 +330,7 @@ export default function TournamentConfig({
               )}
             />
             <p className="text-[11px] text-muted-foreground">
-              Total execution time allowed for the multiplayer tournament.
+              Rounds played for each pair of strategies.
             </p>
           </div>
         </section>
@@ -371,9 +373,8 @@ export default function TournamentConfig({
             />
           </div>
 
-            <PayoffMatrix payoffs={payoffs} />
-          </section>
-        
+          <PayoffMatrix payoffs={payoffs} />
+        </section>
 
         {/* ── Lancer le tournoi ── */}
         <Button

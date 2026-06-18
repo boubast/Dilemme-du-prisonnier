@@ -73,32 +73,21 @@ export default function TournamentHistory({
                     {t.nom}
                   </span>
                   <div className="flex items-center gap-1">
-                    <Badge
-                      variant="secondary"
-                      className={cn(
-                        "h-4 shrink-0 rounded-sm border-none px-1.5 py-0 text-[9px] font-semibold tracking-wide uppercase",
-                        t.type === "Multi"
-                          ? "bg-purple-500/15 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400"
-                          : "bg-zinc-500/15 text-zinc-600 dark:bg-zinc-500/20 dark:text-zinc-400"
-                      )}
-                    >
-                      In progress
-                    </Badge>
                     {isPending ? (
-                    <Badge
-                      variant="secondary"
-                      className="h-4 shrink-0 rounded-sm border-none bg-primary/10 px-1 py-0 text-[9px] font-semibold tracking-wide text-primary uppercase"
-                    >
-                      En cours
-                    </Badge>
-                  ) : isRecent ? (
-                    <Badge
-                      variant="secondary"
-                      className="h-4 shrink-0 rounded-sm border-none bg-primary/10 px-1 py-0 text-[9px] font-semibold tracking-wide text-primary uppercase"
-                    >
-                      Récent
-                    </Badge>
-                  ) : null}
+                      <Badge
+                        variant="secondary"
+                        className="h-4 shrink-0 rounded-sm border-none bg-primary/10 px-1 py-0 text-[9px] font-semibold tracking-wide text-primary uppercase"
+                      >
+                        En cours
+                      </Badge>
+                    ) : isRecent ? (
+                      <Badge
+                        variant="secondary"
+                        className="h-4 shrink-0 rounded-sm border-none bg-primary/10 px-1 py-0 text-[9px] font-semibold tracking-wide text-primary uppercase"
+                      >
+                        Récent
+                      </Badge>
+                    ) : null}
                   </div>
                 </div>
                 <div className="mt-1 flex items-center gap-2">

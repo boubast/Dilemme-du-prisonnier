@@ -53,7 +53,7 @@ const Home = () => {
         </p>
       </div>
 
-      <div className="w-full flex flex-col gap-4">
+      <div className="flex w-full flex-col gap-4">
         <Tabs
           value={type}
           onValueChange={(val) => setType(val as TournamentType)}
