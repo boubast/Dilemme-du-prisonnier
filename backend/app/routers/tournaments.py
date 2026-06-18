@@ -84,8 +84,8 @@ async def launch_tournament(payload: TournamentLaunchCreate) -> TournoiMoteur:
             db.close()
         raise e
 
-    tournoi.generer_statistiques()
-    lastTournamentStatistics = tournoi
+    response.generer_statistiques()
+    lastTournamentStatistics = response
 
     return response
 
