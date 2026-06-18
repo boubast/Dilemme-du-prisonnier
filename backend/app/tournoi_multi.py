@@ -4,12 +4,20 @@ from time import sleep
 from app.choix import MoteurChoix
 from app.models import Strategie
 from app.database import SessionLocal
+from app.ITournoi import ITournoi
+from app.models import Tournament as TournoiModel
+from app.models import TournamentMulti as TournoiMultiModel
+from app.models import Strategie, ParticipationMulti
+from datetime import date
 
-class Tournoi_multi:
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
-    id_tournoi: int
+class Tournoi_multi(ITournoi):
 
-    def __init__(self):
+    def __init__(self,id_tournoi):
+        super().__init__()
+
         self.stop = False
         self.mutex_lock = Lock()
         self.moteurChoix = MoteurChoix()
@@ -20,20 +28,71 @@ class Tournoi_multi:
         self.meilleure_strategie = ""
         self.date_creation = ""
         self.resultats = {}
+        self.participations_multi = []
+        self.strategie_ids = []
+        self.type_tournoi = "Multi"
 
         # Récupérer un tournoi de la BD
-        #TODO Get tournoi depuis la BD
-        self.strategie_ids = []
-        self.duree = 0
+        db = SessionLocal()
+        try:
+            stmt = (
+                select(TournoiModel)
+                .where(TournoiModel.id_tournoi == id_tournoi)
+            )
+            tournoiBD = db.scalars(stmt).first()
+            if tournoiBD is None:
+                raise ValueError("Tournoi introuvable")
+            
+            stmt = (
+                select(TournoiMultiModel)
+                .where(TournoiMultiModel.id_tournoi == id_tournoi)
+                .options(
+                    selectinload(TournoiMultiModel.participations).selectinload(ParticipationMulti.strategie),
+                )
+            )
+            tournoiMultiBD = db.scalars(stmt).first()
+            if tournoiMultiBD is None:
+                raise ValueError("Tournoi introuvable")
+
+            self.participations = tournoiMultiBD.participations
+
+            self.duree_secondes = tournoiMultiBD.duree_secondes
+            self.strategie_ids = [participation.id_strategie 
+                                  for participation in self.participations]
+            self.date_creation = tournoiBD.date_creation
+            self.id_tournoi = tournoiBD.id_tournoi
+
+        finally:
+            db.close()
 
     @staticmethod
-    def create_tournoi(duree,strategie_ids):
+    def create_tournoi(duree_secondes,strategie_ids):
         # Création du tournoi en BD
-        #TODO Création tournoi en BD
-        tournoi = Tournoi_multi()
-        tournoi.strategie_ids = strategie_ids
-        tournoi.duree = duree
-        return tournoi
+        tournoi = TournoiModel(date_creation=date.today(),
+                               type_tournoi="Multi")
+        
+        db = SessionLocal()
+        try:
+            db.add(tournoi)
+            db.commit()
+            db.refresh(tournoi)
+
+            tournoi_multi = TournoiMultiModel(id_tournoi=tournoi.id_tournoi,
+                               duree_secondes=duree_secondes)
+            db.add(tournoi_multi)
+
+            # Création des participations (lien tournoi - stratégie) en BD
+            for id_strategie in strategie_ids:
+                participation = ParticipationMulti(id_tournoi=tournoi.id_tournoi,
+                                                   id_strategie=id_strategie,
+                                                   nombre_cooperations=0,
+                                                   nombre_trahisons=0)
+                db.add(participation)
+            db.commit()
+
+            return Tournoi_multi(tournoi.id_tournoi)
+        finally:
+            db.close()
 
     def execute(self):
         self.actions_strats = [[] for i in range(len(self.strategie_ids))]
@@ -47,6 +106,8 @@ class Tournoi_multi:
         attente = threading.Thread(target=self.stopper)
         attente.start()
         attente.join()
+
+        return self
 
     def iterer_strategie(self,numero_strat,id_strategie):
         db = SessionLocal()
@@ -69,7 +130,7 @@ class Tournoi_multi:
 
     def stopper(self):
         self.stop = False
-        sleep(self.duree)
+        sleep(self.duree_secondes)
         self.stop = True
 
     def generer_statistiques(self):
@@ -92,8 +153,6 @@ class Tournoi_multi:
                 nb_cooperate_total += nb_cooperate
                 nb_betray_total += nb_betray
                 self.resultats[id_strategie] = {"nb_cooperate":nb_cooperate,"nb_betray":nb_betray,"score":0}
-
-                #TODO enregistrer les résultats en BD
             
             # Calcul des valeurs de chaque action
             valeur_cooperate = (2*nb_cooperate_total + nb_betray_total) / (nb_cooperate_total + 5*nb_betray_total)
@@ -111,7 +170,12 @@ class Tournoi_multi:
                 elif score==max_score:
                     self.meilleure_strategie += " - " + db.get(Strategie, id_strategie).nom
                 
-                #TODO écriture en BD
+            tournoi = db.get(TournoiModel, self.id_tournoi)
+            setattr(tournoi, "meilleure_strategie", self.meilleure_strategie)
+            tournoi_multi = db.get(TournoiMultiModel, self.id_tournoi)
+            setattr(tournoi_multi, "resultats", self.resultats)
+            db.commit()
+            db.refresh(tournoi)
             db.commit()
         finally:
             db.close()

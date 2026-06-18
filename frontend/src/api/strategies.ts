@@ -6,9 +6,9 @@ const API_URL =
   (import.meta.env.VITE_API_URL || "http://localhost:8000") +
   (import.meta.env.VITE_API_PREFIX || "/api/v1")
 
-export async function fetchStrategies(): Promise<Strategie[]> {
+export async function fetchStrategies(typeTournoi:string): Promise<Strategie[]> {
   try {
-    const response = await fetch(`${API_URL}/strategy`)
+    const response = await fetch(`${API_URL}/strategy/${typeTournoi}`)
 
     if (!response.ok) {
       throw await handleApiResponseError(response, "Erreur lors de la récupération des stratégies")

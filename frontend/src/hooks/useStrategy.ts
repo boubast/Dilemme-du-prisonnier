@@ -151,11 +151,12 @@ export function useStrategy(
   const [nom, setNom] = useState("")
   const [explication, setExplication] = useState("")
   const [scriptRhai, setScriptRhai] = useState("")
+  const [typeTournoi, setTypeTournoi] = useState("Classique")
 
   const reload = useCallback(async () => {
     setLoading(true)
     try {
-      const list = await fetchStrategies()
+      const list = await fetchStrategies(typeTournoi)
       setStrategies(list)
     } catch (e) {
       console.error("Erreur lors de la récupération des stratégies :", e)
@@ -184,6 +185,7 @@ export function useStrategy(
             setNom(s.nom)
             setExplication(s.explication)
             setScriptRhai(formatRhaiScriptForEditor(s.script_rhai))
+            setTypeTournoi(s.type)
           }
         } catch (error) {
           console.error("Erreur lors du chargement de la stratégie :", error)
@@ -196,6 +198,7 @@ export function useStrategy(
       setNom("")
       setExplication("")
       setScriptRhai("")
+      setTypeTournoi("")
     }
   }, [open, strategyId])
 
@@ -242,6 +245,7 @@ export function useStrategy(
       nom: nom.trim(),
       explication: explication.trim(),
       script_rhai: scriptRhai.trim(),
+      type: typeTournoi.trim(),
     }
 
     try {
@@ -269,6 +273,8 @@ export function useStrategy(
     setExplication,
     scriptRhai,
     setScriptRhai: setScriptRhai as Dispatch<SetStateAction<string>>,
+    typeTournoi,
+    setTypeTournoi,
     save,
   }
 }

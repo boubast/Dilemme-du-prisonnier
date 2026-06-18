@@ -14,21 +14,22 @@ from app.schemas.strategie import (
     StrategieSyntaxValidationRequest,
     StrategieUpdate,
 )
+from app.models.types.type_tournoi import Type_tournoi
 
 
 router = APIRouter(prefix="/strategy", tags=["strategy"])
 
 
 def validate_rhai_syntax(script: str) -> str | None:
-    result = MoteurChoix().choix(script, "[]", "[]", "1", "1", "1", "1")
+    result = MoteurChoix().choix_classique(script, "[]", "[]", "1", "1", "1", "1")
     if result.startswith("Erreur:"):
         return result.removeprefix("Erreur:").strip()
     return None
 
 
-@router.get("", response_model=list[StrategieListRead])
-def list_strategies(db: Session = Depends(get_db)) -> list[Strategie]:
-    return list(db.scalars(select(Strategie).order_by(Strategie.id_strategie)))
+@router.get("/{type_tournoi}", response_model=list[StrategieListRead])
+def list_strategies(type_tournoi:Type_tournoi,db: Session = Depends(get_db)) -> list[Strategie]:
+    return list(db.scalars(select(Strategie).where(Strategie.type_strategie==type_tournoi).order_by(Strategie.id_strategie)))
 
 
 @router.post("/validate-syntax", response_model=StrategieSyntaxValidationRead)

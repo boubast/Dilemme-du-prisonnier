@@ -3,6 +3,7 @@ export type Strategie = {
   nom: string
   explication: string
   script_rhai: string
+  type: string
 }
 
 type PartieResult = {

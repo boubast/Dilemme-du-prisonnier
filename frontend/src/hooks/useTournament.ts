@@ -7,6 +7,8 @@ import {
   createTournament,
 } from "@/api/tournament"
 
+//TODO : Type de tournoi
+
 export function useTournament(
   tournamentId: string | null = null,
   autoLoadList = false
@@ -47,7 +49,7 @@ export function useTournament(
     const loadActive = async () => {
       setActiveLoading(true)
       try {
-        const t = await fetchTournamentById(tournamentId)
+        const t = await fetchTournamentById(tournamentId, "Classique")
         if (ignore) return
 
         setActiveTournament(t || null)
@@ -71,7 +73,7 @@ export function useTournament(
   }, [tournamentId])
 
   const getTournament = useCallback(async (id: string) => {
-    return await fetchTournamentById(id)
+    return await fetchTournamentById(id, "Classique")
   }, [])
 
   const addTournament = useCallback(

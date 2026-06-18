@@ -1,11 +1,5 @@
-import type { Tournoi, Partie, Iteration, Strategie } from "@/type"
-
-export interface StrategieDTO {
-  id_strategie: number
-  nom: string
-  explication: string
-  script_rhai: string
-}
+import type { Tournoi, Partie, Iteration } from "@/type"
+import { mapStrategieDTOToStrategie, type StrategieDTO } from "./strategy"
 
 export interface IterationDTO {
   id_iteration: number
@@ -49,15 +43,6 @@ export interface TournoiListItemDTO {
   nom: string
   date_creation: string
   meilleure_strategie: string | null
-}
-
-export function mapStrategieDTOToStrategie(dto: StrategieDTO): Strategie {
-  return {
-    id: String(dto.id_strategie),
-    nom: dto.nom,
-    explication: dto.explication,
-    script_rhai: dto.script_rhai,
-  }
 }
 
 export function mapIterationDTOToIteration(
