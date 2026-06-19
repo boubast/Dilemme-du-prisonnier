@@ -23,3 +23,4 @@ class ParticipationMulti(Base):
 
     nombre_trahisons : Mapped[int] = mapped_column(Integer, nullable=False)
     nombre_cooperations : Mapped[int] = mapped_column(Integer, nullable=False)
+    score : Mapped[int] = mapped_column(Integer, nullable=False)

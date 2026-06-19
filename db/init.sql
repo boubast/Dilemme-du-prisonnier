@@ -78,6 +78,7 @@ CREATE TABLE participation_multi (
     id_strategie BIGINT NOT NULL,
     nombre_trahisons SMALLINT NOT NULL,
     nombre_cooperations SMALLINT NOT NULL,
+    score SMALLINT NOT NULL,
     CONSTRAINT pk_participation_multi PRIMARY KEY (id_tournoi, id_strategie),
     CONSTRAINT fk_participation_multi_tournoi_multi FOREIGN KEY (id_tournoi) REFERENCES tournoi_multi(id_tournoi) ON DELETE CASCADE,
     CONSTRAINT fk_participation_strategie FOREIGN KEY (id_strategie) REFERENCES strategie(id_strategie) ON DELETE CASCADE

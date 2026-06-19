@@ -95,6 +95,7 @@ erDiagram
         BIGINT id_strategie PK, FK
         SMALLINT nombre_trahisons
         SMALLINT nombre_cooperations
+        SMALLINT score
     }
 
     TOURNOI ||--o| TOURNOI_CLASSIQUE : specialise
