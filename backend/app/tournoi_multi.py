@@ -62,6 +62,11 @@ class Tournoi_multi(ITournoi):
             self.date_creation = tournoiBD.date_creation
             self.id_tournoi = tournoiBD.id_tournoi
 
+            for participation in self.participations:
+                self.resultats[participation.id_strategie] = {"nb_cooperate":participation.nombre_cooperations,
+                                                              "nb_betray":participation.nombre_trahisons,
+                                                              "score":participation.score}
+
         finally:
             db.close()
 
@@ -86,7 +91,8 @@ class Tournoi_multi(ITournoi):
                 participation = ParticipationMulti(id_tournoi=tournoi.id_tournoi,
                                                    id_strategie=id_strategie,
                                                    nombre_cooperations=0,
-                                                   nombre_trahisons=0)
+                                                   nombre_trahisons=0,
+                                                   score=0)
                 db.add(participation)
             db.commit()
 
@@ -174,6 +180,13 @@ class Tournoi_multi(ITournoi):
             setattr(tournoi, "meilleure_strategie", self.meilleure_strategie)
             tournoi_multi = db.get(TournoiMultiModel, self.id_tournoi)
             setattr(tournoi_multi, "resultats", self.resultats)
+
+            for strategie in self.resultats.keys():
+                participation = db.get(ParticipationMulti, (self.id_tournoi, strategie))
+                setattr(participation, "nombre_cooperations", self.resultats[strategie]["nb_cooperate"])
+                setattr(participation, "nombre_trahisons", self.resultats[strategie]["nb_betray"])
+                setattr(participation, "score", self.resultats[strategie]["score"])
+
             db.commit()
             db.refresh(tournoi)
             db.commit()

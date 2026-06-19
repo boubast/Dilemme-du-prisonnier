@@ -24,7 +24,7 @@ def validate_rhai_syntax(script: str,type_tournoi: Type_tournoi) -> str | None:
     if type_tournoi == Type_tournoi.Classique:
         result = MoteurChoix().choix_classique(script, "[]", "[]", "1", "1", "1", "1")
     elif type_tournoi == Type_tournoi.Multi:
-        result = MoteurChoix().choix_multi(script, "[]", "[[]]", "0")
+        result = MoteurChoix().choix_multi(script, "[]", "[[],[]]", "0")
     if result.startswith("Erreur:"):
         return result.removeprefix("Erreur:").strip()
     return None
