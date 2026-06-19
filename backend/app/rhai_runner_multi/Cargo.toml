@@ -1,0 +1,9 @@
+[package]
+name = "rhai_runner_multi"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rhai = "*"
+rhai-rand = "*"
+getrandom = { version = "0.3", features = ["wasm_js"] }

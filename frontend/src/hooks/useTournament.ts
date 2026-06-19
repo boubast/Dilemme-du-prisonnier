@@ -1,0 +1,110 @@
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useState, useEffect, useCallback } from "react"
+import type { Tournoi, TournamentConfig } from "@/type"
+import {
+  fetchTournaments,
+  fetchTournamentById,
+  createTournament,
+} from "@/api/tournament"
+
+export function useTournament(
+  tournamentId: string | null = null,
+  autoLoadList = false
+) {
+  const [tournaments, setTournaments] = useState<Tournoi[]>([])
+  const [activeTournament, setActiveTournament] = useState<Tournoi | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [activeLoading, setActiveLoading] = useState(false)
+
+  const reload = useCallback(async () => {
+    setLoading(true)
+    try {
+      const list = await fetchTournaments()
+      setTournaments(list)
+    } catch (e) {
+      console.error("Could not retrieve tournaments:", e)
+      setTournaments([])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  // Charge la liste de tous les tournois si autoLoadList est vrai
+  useEffect(() => {
+    if (autoLoadList) {
+      reload()
+    }
+  }, [autoLoadList, reload])
+
+  // Charge le détail du tournoi actif s'il change
+  useEffect(() => {
+    if (!tournamentId) {
+      setActiveTournament(null)
+      return
+    }
+
+    let ignore = false
+
+    const loadActive = async () => {
+      setActiveLoading(true)
+      try {
+        let type: "Classique" | "Multi" = "Classique"
+        let found = tournaments.find((t) => t.id === tournamentId)
+        if (!found) {
+          const list = await fetchTournaments()
+          setTournaments(list)
+          found = list.find((t) => t.id === tournamentId)
+        }
+
+        if (found && found.type) {
+          type = found.type
+        }
+
+        const t = await fetchTournamentById(tournamentId, type)
+        if (ignore) return
+
+        setActiveTournament(t || null)
+      } catch (e) {
+        console.error("Could not retrieve tournament details:", e)
+      } finally {
+        if (!ignore) {
+          setActiveLoading(false)
+        }
+      }
+    }
+
+    loadActive()
+
+    return () => {
+      ignore = true
+    }
+  }, [tournamentId, tournaments])
+
+  const getTournament = useCallback(
+    async (id: string, type: "Classique" | "Multi" = "Classique") => {
+      return await fetchTournamentById(id, type)
+    },
+    []
+  )
+
+  const addTournament = useCallback(
+    async (config: TournamentConfig) => {
+      const newTournoi = await createTournament(config)
+      if (autoLoadList) {
+        await reload()
+      }
+      return newTournoi
+    },
+    [autoLoadList, reload]
+  )
+
+  return {
+    tournaments,
+    activeTournament,
+    loading,
+    activeLoading,
+    reload,
+    getTournament,
+    addTournament,
+  }
+}
